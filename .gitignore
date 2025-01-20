@@ -1,0 +1,10 @@
+# large data files
+/data
+*.csv
+
+# python environmnts
+.venv/
+venv/
+
+# jupyter exploratory notebooks
+exploration.ipynb
