@@ -23,11 +23,13 @@ Collaboration repo for MADS Milestone II
   source .venv/bin/activate
   ```
 
-## Running the Application 🧑‍💻
+## How To Download the Data 📊
 1. Ensure the virtual environment is activated.
 2. Run the main script:
   ```sh
   python main.py
+  # data should download under /data
   ```
+3. Feel free to use any of the exploratory notebooks to check out the data
 
 > Data will automatically be downloaded within the main script. There will be no CSVs stored directly in this repo
