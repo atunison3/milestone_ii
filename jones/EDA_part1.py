@@ -3,6 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt 
 import numpy as np
 from matplotlib.lines import Line2D
+from scipy.stats import gaussian_kde
+import matplotlib.ticker as mtick
 
 
 def violin_plotter(input_df, cols, sample_size = 10000, normalize=True, colors=None, alt_names=None, title=None):
@@ -278,6 +280,95 @@ def prep_data(input_df, condition):
     return out_df 
 
 
+def hist_plotter(input_ser, sample_size, normalize=False, exclude_outliers=True, title=None, xlabel=None): 
+    """This function creates a histogram for the single series feature provided by the user
+    INPUTS: 
+    input_ser: a pandas series object with quantitative data
+    sample_size: an interger specifying the number of samples to take from the data 
+    normalize: a boolean specifying whether the data should be normalized or not
+    exclude_outliers: a boolean specifying whether outliers should be included
+    title: a string entry specifying the title for the output histogram plot
+    xlabel: a string entry specifying the label for the X-axis data
+    
+    OUTPUTS: 
+    None, a plot is generated but the function "returns" nothing
+    """
+
+    if sample_size < len(input_ser): 
+        input_ser = input_ser.sample(sample_size)
+    
+    if normalize == True: 
+        density_tag = True
+        y_label = "Probability Density" 
+        hist_label = "Normalized Histogram"
+
+    else: 
+        density_tag = False
+        y_label ="Count in Bin"
+        hist_label = "Histogram"
+
+
+    if exclude_outliers == True:
+        #Apply IQR analysis to determine outliers
+        Q1 = np.percentile(input_ser, 25)
+        Q3 = np.percentile(input_ser, 75) 
+        IQR = Q3 - Q1 
+        LB = Q1 - 1.5*IQR 
+        UB = Q3 + 1.5*IQR
+
+        input_ser = input_ser[(input_ser >= LB) & (input_ser <= UB)]
+
+    #apply Freedman-Diaconis' Rule to find Appropriate bin-qty: 
+    h = 2 * IQR * (len(input_ser))**(-1/3)
+    num_bins = int(round((input_ser.max() - input_ser.min()) / h, 0))
+    
+    #Add PDF: 
+    kde = gaussian_kde(input_ser)
+    x_values = np.linspace(input_ser.min(), input_ser.max(), 1000)
+
+    #Calculate CDF: 
+    cdf_values = np.cumsum(kde(x_values)) * (x_values[1] - x_values[0])
+
+    
+    # Create the histogram and PDF on a dual-axis plot:
+    fig, ax1 = plt.subplots(figsize=(8,6))
+
+    # Plot histogram and pdf on the first axis (ax1)
+    ax1.hist(input_ser, bins=num_bins, density=density_tag, color='firebrick', label=hist_label, histtype="bar")
+    ax1.plot(x_values, kde(x_values), '--', color='black', lw=2, label="Probability density")
+
+    ax1.set_xlabel(xlabel)
+    ax1.set_ylabel(y_label, color='firebrick')
+    ax1.tick_params(axis='y', colors='firebrick')
+    ax1.yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
+
+    
+    # Create a second axis for the PDF
+    ax2 = ax1.twinx()
+    ax2.plot(x_values, cdf_values, '-', color='green', lw=2, label='Cumulative Density')
+    ax2.set_ylabel("Cumulative Density Function", color='green')    
+    ax2.tick_params(axis='y', colors='green')
+    ax2.yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
+
+
+    # Add a text for the 50% finish time
+    y_max = ax2.get_ylim()[1]  # Top of the Y-axis
+    time_50 = np.interp(0.5, cdf_values, x_values)
+    ax2.text(x_values.max(), y_max*0.8, f"50% Finish Charging\nin {round(time_50,1)} min.", 
+             ha='right', va='top', color='green', fontsize=12)
+    
+    #Set legend
+    handles, labels = ax1.get_legend_handles_labels()
+    handles2, labels2 = ax2.get_legend_handles_labels()
+    handles.extend(handles2)
+    labels.extend(labels2)    
+
+    #Set title & legend
+    plt.title(title,fontweight='bold', fontsize=14)
+    plt.legend(handles, labels, loc='center right')
+    plt.show()
+
+
 def create_desired_plots(input_df): 
     """
     This function creates 4 figures that are useful for exploratory data analysis of the EV public charging dataset
@@ -308,20 +399,24 @@ def create_desired_plots(input_df):
     violin_plotter(df_no_faults, cols=features, normalize=True, colors=None, alt_names=names, title=plot_titles[1])
     box_plotter(df_no_faults, cols=features, normalize=True, colors=None, alt_names=names, title=plot_titles[2])
     violin_plotter(df_no_faults, cols=features, normalize=False, colors=None, alt_names=names, title=plot_titles[3])     
+    hist_plotter(df_no_faults["charge_duration"]*60, sample_size = 10000, normalize=True, 
+                 xlabel="Charge Duration - minutes", 
+                 title="Fig 5. Total charge duration (minutes) Distribution"
+                 )
 
 
 def show_EDA1_results():
-    """This function runs the desired process to create the desired plots"""
+    """This function runs the desired process to create the desired violin and histogram plots"""
+    
+    #read the data
     filepath = r'data\\evwatts.public.session.csv'
     df = pd.read_csv(filepath) #Read file
     df["soc_charged"] = df["end_soc"] - df["start_soc"]  #calculate the SOC charged during event
+    
+    #create violin and box plots
     create_desired_plots(df) #create desired plots
-
 
 #Execution: 
 if __name__ == "__main__": 
-    filepath = r'data\\evwatts.public.session.csv'
-    df = pd.read_csv(filepath) #Read file
-    df["soc_charged"] = df["end_soc"] - df["start_soc"]  #calculate the SOC charged during event
-    create_desired_plots(df) #create desired plots
+    show_EDA1_results()
 
