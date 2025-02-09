@@ -147,9 +147,9 @@ def anomaly_tags(input_df, anomaly_list=None):
     return out_df
 
 
-def main_execution(input_condition=2, test_ratio=0.2, val_ratio=0.25, anomaly_list=None): 
+def get_SL_data(input_condition=2, test_ratio=0.2, val_ratio=0.25, anomaly_list=None): 
     """
-    This function runs the main execution to process the data into train, val, and test datasets
+    This function prepares the data into train, val, and test datasets for supervised learning
     INPUTS: 
     input_condition: An integer value (0, 1, or 2) specifying which condition to apply to combine the data
                      0: do nothing, 1: drop nulls, 2: drops impractical values (used for supervised learning)
@@ -170,10 +170,10 @@ def main_execution(input_condition=2, test_ratio=0.2, val_ratio=0.25, anomaly_li
     y_col = "flag_id"
     cat_cols = ["power_kw", "connector_type", "pricing", "region", "land_use", "metro_area", "charge_level", "venue"]
     remove_cols = ["session_id", "connector_id_x", "evse_id", "connector_id_y", "start_datetime", "end_datetime",
-                   "hour", "minute", "second"]
+                   "minute", "second"]
     
     # Get the train, val, and test split of data
-    transformed_df = transform_data(mapped_df, remove_cols=remove_cols, cat_cols=cat_cols, y_col=y_col)
+    transformed_df = transform_data(mapped_df, remove_cols=remove_cols, cat_cols=cat_cols, y_col=y_col).dropna()
     X_train, X_val, X_test, y_train, y_val, y_test = split_data(transformed_df,
                                                                 target_cols=y_col,
                                                                 test_ratio=test_ratio,
@@ -183,5 +183,47 @@ def main_execution(input_condition=2, test_ratio=0.2, val_ratio=0.25, anomaly_li
     return (X_train, X_val, X_test, y_train, y_val, y_test)
 
 
+def get_UL_data(input_condition=2, test_ratio=0.2, val_ratio=0.25, anomaly_list=None): 
+    """
+    This function prepares the data into train, val, and test datasets for unsupervised learning
+    INPUTS: 
+    input_condition: An integer value (0, 1, or 2) specifying which condition to apply to combine the data
+                     0: do nothing, 1: drop nulls, 2: drops impractical values (used for supervised learning)
+    test_ratio: a float value between 0 and 1 determining how much of the input data will be the test dataset
+    val_ratio: a float value between 0 and 1 determining what proportion of non-test data will be used for validation
+    anomaly_list: a list of integer values associated with the flag_id entry code
+
+    OUTPUTS: 
+    X_train, X_test: 
+    Y_train, y_test:    
+    """
+    #Get the dataframe processed
+    merged_df = EDA_part2.combine_charging_data(input_condition=input_condition)
+    merged_time_df = process_datetime(merged_df)
+    mapped_df = anomaly_tags(merged_time_df, anomaly_list=anomaly_list)
+    
+    #Declare the target, categorical, and unwanted columns: 
+    y_col = "flag_id"
+    cat_cols = ["power_kw", "connector_type", "pricing", "region", "land_use", "metro_area", "charge_level", "venue"]
+    remove_cols = ["session_id", "connector_id_x", "evse_id", "connector_id_y", "start_datetime", "end_datetime",
+                   "minute", "second"]
+    
+    # Get the train, val, and test split of data
+    transformed_df = transform_data(mapped_df, remove_cols=remove_cols, cat_cols=cat_cols, y_col=y_col).dropna()
+    
+    y = transformed_df[[y_col]]
+    X = transformed_df.drop(columns=y_col) 
+    
+    #Separate test data from train/test set: 
+    X_train = transformed_df[transformed_df["flag_id"]==0].drop(columns=y_col)
+    X_anomalies = transformed_df[transformed_df["flag_id"]==1].drop(columns=y_col)
+    X_test = transformed_df.drop(columns=y_col)
+    y_train = transformed_df[transformed_df["flag_id"]==0][["flag_id"]]
+    y_test = transformed_df[["flag_id"]]
+
+    return (X_train, X_test, X_anomalies, y_train, y_test)
+
+
 if __name__ == "__main__":
-    X_train, X_val, X_test, y_train, y_val, y_test = main_execution()
+    #X_train, X_val, X_test, y_train, y_val, y_test = get_SL_data()
+    X_train, X_test, X_anomalies, y_train, y_test = get_UL_data()
