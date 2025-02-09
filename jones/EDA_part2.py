@@ -5,12 +5,12 @@ import pandas as pd
 import EDA_part1
 
     
-def combine_charging_data():
+def combine_charging_data(input_condition=2):
     """
     This function comnines data from the charging stations, charging connectors, and charging sessions
     INPUTS: 
-    None
-           
+    input_condition: An integer value (0, 1, or 2) specifying which condition to apply to combine the data
+                     0: do nothing, 1: drop nulls, 2: drops impractical values (used for supervised learning)           
     OUTPUTS:
     df_merged: a pandas dataframe object combined from the major datafiles 
     """
@@ -23,7 +23,7 @@ def combine_charging_data():
     #Read and merge the dataframes of interest 
     df = pd.read_csv(filepath) #Read file
     df["soc_charged"] = df["end_soc"] - df["start_soc"]
-    df_redux = EDA_part1.prep_data(input_df=df, condition=2)
+    df_redux = EDA_part1.prep_data(input_df=df, condition=input_condition)
     df_stations =  pd.read_csv(station_file)
     df_connectors = pd.read_csv(connector_file)
 
@@ -111,6 +111,6 @@ def generate_desired_plots(input_df):
 
 #Execution: 
 if __name__ == "__main__": 
-    df = combine_charging_data()
+    df = combine_charging_data(input_condition=2)
     generate_desired_plots(df)
 

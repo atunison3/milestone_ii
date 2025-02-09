@@ -259,7 +259,7 @@ def prep_data(input_df, condition):
 
     #Conditional Cleaning to view desired features and how they vary 
     if condition ==0: 
-        out_df = df
+        out_df = input_df
         
     if condition == 1: 
         out_df = input_df.dropna()
