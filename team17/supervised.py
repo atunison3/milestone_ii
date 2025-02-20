@@ -81,6 +81,24 @@ if __name__=='__main__':
     df_test_clean = clean.clean_dataset(df_test)
     del df_train, df_test
 
+    # Run pipelines 
+    X_train = full_pipeline.fit_transform(df_train_clean.drop(columns=['charge_duration']))
+    X_test = full_pipeline.transform(df_test_cleaned.drop(columns=['charge_duration']))
+
+    # Get label data
+    y_train = np.array(df_train_clean['charge_duration'])
+    y_test = np.array(df_test_clean['charge_duration'])
+    del df_train_clean, df_test_clean
+
+    # Convert label data from hours to minutes
+    y_train *= 60
+    y_test *= 60
+
+
+
+
+
+
 
 
 
