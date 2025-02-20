@@ -12,15 +12,33 @@ Collaboration repo for MADS Milestone II
   ```sh
   .venv\Scripts\activate
   ```
-
+3. Install requirements.txt
+  ```sh
+  pip install -r requirements.txt
+  ```
+4. Build source code and install local pacakge
+  ```sh
+  python -m build
+  pip install -e .
+  ```
+  
 ### Mac
 1. Create the virtual environment:
   ```sh
-  python3 -m venv .venv
+  python3.10 -m venv .venv
   ```
 2. Activate the virtual environment:
   ```sh
   source .venv/bin/activate
+  ```
+3. Install requirements.txt
+  ```sh
+  pip install -r requirements.txt
+  ```
+4. Build source code and install local pacakge
+  ```sh
+  python -m build
+  pip install -e .
   ```
 
 ## How To Download the Data 📊

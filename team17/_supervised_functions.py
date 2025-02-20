@@ -1,6 +1,7 @@
 import altair as alt 
 import hashlib 
 import numpy as np
+import os
 import pandas as pd
 import re
 import vega_datasets
@@ -91,9 +92,8 @@ class DataCleaningFunctions:
         df = df[(df.end_soc - df.start_soc) > 0]  # Anomalies
         df = df[df.end_soc >= 0.95]  # Anything before this, the operator disconnected before finishing
         df = df[df.charge_duration <= 1]  # People be leaving these on the chargers
-        
-        # Drop data leak columns
-        df = self.drop_columns(df)
+        df = df[df['flag_id'] == 0]
+        df = df[(df['energy_kwh'] / df['charge_duration']) < 350]
         
         # Deal with NaN's
         df = self.deal_with_na(df)
@@ -106,6 +106,9 @@ class DataCleaningFunctions:
 
         # Filter 
         df = self.filter_values(df)
+
+        # Drop data leak columns
+        df = self.drop_columns(df)
         
         return df
 
@@ -125,6 +128,12 @@ class LoadData:
         df = pd.read_csv(path)
 
         return df 
+
+    def merge_data(sessions: pd.DataFrame, evse: pd.DataFrame) -> pd.DataFrame:
+        '''Merges the data'''
+
+        return pd.merge(sessions, evse, how='left', on='evse_id')
+
 
 def chart_topologogical(source: pd.DataFrame) -> alt.Chart:
     '''Creates a geoplot used in the data cleaning
@@ -185,7 +194,16 @@ def search_pattern(pattern: str, search_term: str) -> str:
     except TypeError:
         return float('NaN')
 
+def get_paths(path_to_assets: str = None) -> tuple[Path, Path]:
+    '''Returns a tuple of paths'''
 
+    # Automatically set path_to_assets
+    if not path_to_assets:
+        path_to_assets = 'assets'
 
+    # Join path strings and create Paths
+    sessions_path = Path(os.path.join(path_to_assets, 'evwatts.public.session.csv'))
+    evse_path = Path(os.path.join(path_to_assets, 'evwatts.public.evse.csv')) 
 
+    return sessions_path, evse_path
 

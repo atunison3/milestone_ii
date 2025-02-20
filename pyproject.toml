@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "team17_mjonesgm_atunison_szymons"
+name = "team17"
 version = "0.1.0"
 description = """This project serves as the University of Michigan (UMich) Masters in 
 Applied Data Science (MADS) Milestone II for Team 17"""
@@ -23,7 +23,7 @@ docs = ["sphinx", "mkdocs"]
 repository = "https://github.com/atunison3/milestone_ii"
 
 [tool.setuptools]
-packages = ["team17_mjonesgm_atunison_szymons"]
+packages = ["team17"]
 
 [tool.ruff]
 line-length = 120

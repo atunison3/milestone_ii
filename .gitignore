@@ -6,6 +6,7 @@ assets/
 # python environmnts
 .venv/
 dist/
+__pycache__/
 
 # jupyter exploratory notebooks
 exploration.ipynb
