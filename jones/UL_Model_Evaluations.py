@@ -9,11 +9,9 @@ from sklearn.decomposition import PCA
 from sklearn.ensemble import IsolationForest
 from sklearn.svm import OneClassSVM #very slow
 from sklearn.neighbors import LocalOutlierFactor
-from sklearn.cluster import DBSCAN
 
 #model eval packages
 from sklearn.model_selection import KFold
-from sklearn.metrics import precision_score, recall_score, accuracy_score
 
 #Import pyscripts 
 import Prep_data_UL

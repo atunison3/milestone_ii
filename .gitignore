@@ -9,4 +9,5 @@ venv/
 # jupyter exploratory notebooks
 exploration.ipynb
 .DS_*
-.venv
+.ruff_cache/
+

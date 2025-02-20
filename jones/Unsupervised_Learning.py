@@ -1,11 +1,8 @@
 #Import relavent packages
 import matplotlib.pyplot as plt
-import numpy as np 
 
 from sklearn.decomposition import PCA
 from sklearn.ensemble import IsolationForest
-from sklearn.model_selection import KFold
-from sklearn.metrics import precision_score, recall_score, accuracy_score
 
 #Import pyscripts 
 import Prep_data_UL
@@ -42,7 +39,7 @@ def evaluate_pca(input_df, variance_retention=0.95, view_plot=True):
     pca_X = pca.fit_transform(input_df)
 
     #plot the variance vs. PCA num. 
-    if view_plot == True: 
+    if view_plot: 
         plt.plot(range(1, len(cumulative_variance) + 1), cumulative_variance, marker='o')
         plt.xlabel('Number of Components')
         plt.ylabel('Cumulative Explained Variance')
