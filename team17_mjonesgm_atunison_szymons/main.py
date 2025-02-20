@@ -12,7 +12,7 @@ def get_data() -> None:
   # Run the shell script
   subprocess.run(['sh', shell_script], check=True)
 
-  print(f"Data has been downloaded and saved in the data folder.")
+  print("Data has been downloaded and saved in the data folder.")
 
 if __name__ == '__main__':
   get_data()

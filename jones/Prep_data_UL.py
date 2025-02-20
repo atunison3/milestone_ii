@@ -6,7 +6,6 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.model_selection import train_test_split 
 
 #import relavent pyscripts: 
-import EDA_part1
 import EDA_part2
 
 def transform_data(input_df, remove_cols, cat_cols, y_col): 

@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "team17_mjonesgm_atunison_szymons"
+version = "0.1.0"
+description = """This project serves as the University of Michigan (UMich) Masters in 
+Applied Data Science (MADS) Milestone II for Team 17"""
+authors = [
+    { name = "Andy Tunison", email = "andrew.e.tunison@gmail.com" },
+    { name = "Szymon", email = "szymons@umich.edu" },
+    { name = "Matt Jones", email = "mjones@umich.edu" }]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = "==3.10"
+
+[project.optional-dependencies]
+dev = ["pytest", "black", "ruff"]
+docs = ["sphinx", "mkdocs"]
+
+[project.urls]
+repository = "https://github.com/atunison3/milestone_ii"
+
+[tool.setuptools]
+packages = ["team17_mjonesgm_atunison_szymons"]
+
+[tool.ruff]
+line-length = 120
+select = ["E", "F", "I"]
+ignore = ["I001"]
+

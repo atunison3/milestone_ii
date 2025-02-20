@@ -1,15 +1,17 @@
-<<<<<<< HEAD
 # large data files
 /data
 *.csv
+assets/
 
 # python environmnts
 .venv/
-venv/
+dist/
 
 # jupyter exploratory notebooks
 exploration.ipynb
-=======
 .DS_*
-.venv
->>>>>>> a0e18de (Added my data viz and beginning classification notebooks)
+.ruff_cache/
+
+# Other
+*.egg*
+
