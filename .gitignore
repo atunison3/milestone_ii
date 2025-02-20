@@ -1,13 +1,17 @@
 # large data files
 /data
 *.csv
+assets/
 
 # python environmnts
 .venv/
-venv/
+dist/
 
 # jupyter exploratory notebooks
 exploration.ipynb
 .DS_*
 .ruff_cache/
+
+# Other
+*.egg*
 

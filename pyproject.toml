@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -23,12 +23,10 @@ docs = ["sphinx", "mkdocs"]
 repository = "https://github.com/atunison3/milestone_ii"
 
 [tool.setuptools]
-packages = ["my_project"]
-
-[tool.setuptools.package-data]
-"my_project" = ["*.txt", "*.json"]  # Include data files in your package
+packages = ["team17_mjonesgm_atunison_szymons"]
 
 [tool.ruff]
 line-length = 120
 select = ["E", "F", "I"]
 ignore = ["I001"]
+
