@@ -3,6 +3,8 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.preprocessing import StandardScaler, FunctionTransformer, MultiLabelBinarizer
 
+from team17.super.parameters import cat_features, num_features
+
 class DataFrameSelector(BaseEstimator, TransformerMixin):
     def __init__(self, attribute_names: list):
         self.attribute_names = attribute_names
@@ -26,12 +28,6 @@ class MyLabelBinarizer(TransformerMixin):
 
 string_converter = FunctionTransformer(lambda x: x.astype(str), validate=False)
 
-# Select features
-num_features = ['start_soc', 'year']
-cat_features = [
-    'evse_id', 'connector_id', 'metro_area', 'land_use', 'num_ports', 'venue', 
-    'pricing', 'month', 'day', 'hour', 'day_of_year', 'quarter', 'weekday', 'week_num'
-    ]
 
 # Create pipelines
 num_pipeline = Pipeline([
