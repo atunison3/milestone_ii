@@ -147,7 +147,7 @@ if __name__=='__main__':
     
     # Create dataframe with results
     results = [log_reg_model, rf_model, knn_model]
-    results_df = pd.DataFrame([vars(model.results) for model in results])
+    results_df = pd.DataFrame([vars(model.score.results) for model in results])
     results_df.to_csv(os.path.join(args.path_to_results, 'results.csv'), index=False)
 
     

@@ -36,8 +36,9 @@ class ModelEval:
     
     @property 
     def results(self):
-        return self.score.results 
-        
+        return self.score
+
+
     def evaluate(self):
         '''Perform grid search and return '''
 
