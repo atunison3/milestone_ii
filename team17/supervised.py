@@ -10,11 +10,11 @@ if __name__=='__main__':
     from sklearn.linear_model import LogisticRegression
     from sklearn.neighbors import KNeighborsClassifier
     
-    from team17._supervised_functions import DataCleaningFunctions, LoadData
-    from team17._supervised_functions import split_train_test_by_id, get_paths
-    from team17._supervised_functions import DataIndex
-    from team17._supervised_pipeline import full_pipeline
-    from team17._supervised_evaluations import evaluate_model
+    from team17.super.functions import DataCleaningFunctions, LoadData
+    from team17.super.functions import split_train_test_by_id, get_paths
+    from team17.super.functions import DataIndex
+    from team17.super.pipeline import full_pipeline
+    from team17.super.evaluations import evaluate_model
 
 
     # Create argument parser 

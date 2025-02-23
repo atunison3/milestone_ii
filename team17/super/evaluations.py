@@ -34,6 +34,10 @@ class ModelEval:
         self._X_test = X_test 
         self._y_test = y_test
     
+    @property 
+    def results(self):
+        return self.score.results 
+        
     def evaluate(self):
         '''Perform grid search and return '''
 

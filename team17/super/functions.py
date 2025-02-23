@@ -168,13 +168,6 @@ class DataIndex:
 
         return self._subsets[subset_name]
 
-class ModelScore():
-    def __init__(self, identifier: str, acc: float, rec: float, pre: float, f1: float):
-        self.identifier = identifier
-        self.acc = acc 
-        self.rec = rec 
-        self.pre = pre 
-        self.f1 = f1 
 
 
 def chart_topologogical(source: pd.DataFrame) -> alt.Chart:
