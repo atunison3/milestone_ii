@@ -134,6 +134,48 @@ class LoadData:
 
         return pd.merge(sessions, evse, how='left', on='evse_id')
 
+class DataIndex:
+    def __init__(self, dataset_name: str, n: int, n_samples: int = 200):
+        
+        self.dataset_name = dataset_name  # Name of array
+        self.n = n                        # Length of data
+        self.n_samples = n_samples        # Number of samples per sampling
+        self._subsets = {}                # Dictionary to track subsets
+
+        # Add the current subset
+        self._subsets['full'] = np.arange(n)
+        self._subsets['current'] = np.arange(n)
+        
+    def new_subset(self, subset_name: str) -> np.array:
+        '''Generate a new subset'''
+
+        # Validate subset_name
+        if subset_name in self._subsets.keys():
+            return self._subsets[subset_name]
+
+        # Get a new subset
+        current = self._subsets['current'][:]
+        subset = np.random.choice(current, self.n_samples, replace=False)
+
+        # Update current
+        self._subsets['current'] = np.array(list(set(current) - set(subset)))
+        self._subsets[subset_name] = subset
+
+        return self._subsets[subset_name]
+
+    def subset(self, subset_name: str) -> np.array:
+        '''Return the subset of a given name'''
+
+        return self._subsets[subset_name]
+
+class ModelScore():
+    def __init__(self, identifier: str, acc: float, rec: float, pre: float, f1: float):
+        self.identifier = identifier
+        self.acc = acc 
+        self.rec = rec 
+        self.pre = pre 
+        self.f1 = f1 
+
 
 def chart_topologogical(source: pd.DataFrame) -> alt.Chart:
     '''Creates a geoplot used in the data cleaning
