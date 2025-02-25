@@ -146,14 +146,14 @@ def main_execution(input_condition=1, test_ratio=0.2, anomaly_list=None):
     y_col = "flag_id"
     cat_cols = ["power_kw", "connector_type", "pricing", "region", "land_use", "metro_area", "charge_level", "venue"]
     remove_cols = ["session_id", "connector_id_x", "evse_id", "connector_id_y", "start_datetime", "end_datetime",
-                   "hour", "minute", "second", "charge_level"]
+                   "hour", "minute", "second"]
     
     # Get the train, val, and test split of data
     X_train, X_test, y_train, y_test = transform_data(mapped_df, remove_cols=remove_cols, cat_cols=cat_cols, y_col=y_col)
 
     #Remove two binary categoricals: 
-    X_train = X_train.drop(subset=["connector_type_Combo", "venue_Undesignated"])
-    X_test = X_test.drop(subset=["connector_type_Combo", "venue_Undesignated"])
+    X_train = X_train.drop(columns=["connector_type_Combo", "venue_Undesignated", "charge_level_DCFC"])
+    X_test = X_test.drop(columns=["connector_type_Combo", "venue_Undesignated", "charge_level_DCFC"])
     
     #output to datafile for future calling if not already in cwd: 
     dir_contents = os.listdir()
@@ -167,4 +167,10 @@ def main_execution(input_condition=1, test_ratio=0.2, anomaly_list=None):
 
 if __name__ == "__main__":
     X_train, X_test, y_train, y_test = main_execution(input_condition=1)
+
+
+# In[ ]:
+
+
+
 
