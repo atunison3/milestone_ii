@@ -3,7 +3,7 @@
 
 # ### Hyperparameter Tuning
 
-# In[ ]:
+# In[40]:
 
 
 #Import general packages
@@ -31,6 +31,84 @@ from sklearn.neighbors import LocalOutlierFactor
 #Import pyscripts 
 import Unsupervised_Learning_V3
 
+
+def evaluate_ISF(X_train, X_test, y_train, y_test, n_estimate=50, contam_ratio=0.2): 
+    """
+    This function builds an isolation forest model, based on the specified 
+    training data, anomaly data, and number of samples. 
+
+    INPUTS: 
+    X_train: the training dataset using only non-anomalous data 
+    X_anomalies: the anomaly dataset 
+    n_samples: the number of samples to consider 
+    n_estimate: the number of estimators used in the model (default to 100)
+
+    OUTPUTS: 
+    precision: the precision of the isolation forest model 
+    recall: the recall of the isolation forest model 
+    accuracy: the accuracy of the isolation forest model 
+    """
+    
+    start = time.time()
+    
+    #Setup the model: 
+    ISF = IsolationForest(n_estimators=n_estimate,contamination = contam_ratio)
+
+    #Fit to the non-anomalous data
+    ISF.fit(X_train)
+
+    #Score performance               
+    pred_train = ISF.predict(X_train)
+    pred_test = ISF.predict(X_test)
+
+    precision, recall, F1 = get_scores(pred_test, y_test)
+
+    end = time.time()
+    duration = np.round((end - start) / 60, 1)
+    print(f"IsoF Evaluation Finished in: {duration} min")
+    
+    return precision, recall, F1 
+
+
+def evaluate_LOF(X_train, X_test, y_train, y_test, n_neighbor= 5, n_leaf = 20, algorithm = "ball tree", p=1):
+    start = time.time()
+    
+    # Initialize and fit Local Outlier Factor model
+    lof = LocalOutlierFactor(novelty=True,
+                             n_neighbors=n_neighbor,
+                             leaf_size=n_leaf,
+                             algorithm=algorithm,
+                             p=p,
+                             )
+    
+    lof.fit(X_train)
+    
+    # Predict on the training set and anomalies
+    pred_train = lof.predict(X_train)
+    pred_test = lof.predict(X_test)
+
+    # Get performance
+    precision, recall, F1 = get_scores(pred_test, y_test)
+    
+    end = time.time()
+    duration = np.round((end - start) / 60, 1)
+    print(f"LOF Evaluation Finished in: {duration} min")
+    
+    return precision, recall, F1 
+
+
+def get_scores(input_prediction, input_data): 
+    TP = np.sum((input_prediction == 1) & (input_data == 1))
+    TN = np.sum((input_prediction == 0) & (input_data == 0))
+    FP = np.sum((input_prediction == 1) & (input_data == 0))
+    FN = np.sum((input_prediction == 0) & (input_data == 1))   
+
+    precision = TP / (TP + FP)
+    recall = TP / (TP + FN)
+    F1 = 2 * precision * recall / (precision + recall)  
+    
+    return precision, recall, F1
+    
 
 def lof_sensitivity_analysis(input_training_data, n_list = [5, 10, 20, 40], 
                              algorithm = ['ball_tree', 'kd_tree', 'brute'], 
@@ -199,7 +277,7 @@ def hyper_parameter_plotting(input_df, model_type, col_x, col_y, col_z, x_name=N
     ax.set_xlabel(x_name)
     ax.set_ylabel(y_name)
     ax.set_zlabel(z_name)
-    ax.set_title(f"Hyperparameter Sensitivity for {model_type}-based Model")
+    ax.set_title(f"Hyperparameter Tuning for {model_type}-based Model")
     
     ax.view_init(elev=30, azim=fig_rotation)  # Adjust these values to change the angle
     
@@ -239,8 +317,8 @@ def hyper_parameter_pipe(num_sample=1000):
     df_isoF = IsoF_sensitivity_analysis(pca_X_train, n_estim = n_estim_list, contam_ratio = contam_ratio_list)
 
     #Sort by scores: 
-    df_lof = df_lof.sort_values(by='rank_test_score', ascending=False).reset_index(drop=True)
-    df_isoF = df_isoF.sort_values(by='rank_test_score', ascending=False).reset_index(drop=True)
+    df_lof = df_lof.sort_values(by='rank_test_score', ascending=True).reset_index(drop=True)
+    df_isoF = df_isoF.sort_values(by='rank_test_score', ascending=True).reset_index(drop=True)
         
     #plot results: 
     LoF_plot = hyper_parameter_plotting(df_lof, model_type="LoF", col_x="param_leaf_size", col_y="param_n_neighbors", 
@@ -251,9 +329,42 @@ def hyper_parameter_pipe(num_sample=1000):
                              col_z="rank_test_score", x_name = "Number of Estimators", y_name = "Contamination Ratio", 
                              z_name = "Score Rank", fig_rotation=140)
 
-    return df_lof, df_isoF, LoF_plot, IsoF_plot
+    #Now score the model for anomaly identification: 
+    algo = df_lof["param_algorithm"].iloc[0]
+    n_leaf = df_lof["param_leaf_size"].iloc[0]
+    n_neighbor = df_lof["param_n_neighbors"].iloc[0]
+    p_var = df_lof["param_p"].iloc[0]
+    
+    lof_precision, lof_recall, lof_F1 = evaluate_LOF(pca_X_train, 
+                                                     pca_X_test, 
+                                                     np.ravel(y_train), 
+                                                     np.ravel(y_test), 
+                                                     n_neighbor= n_neighbor, 
+                                                     n_leaf = n_leaf, 
+                                                     algorithm = algo, 
+                                                     p=p_var,
+                                                    )
+    
+    
+    val_contam = df_isoF["param_contamination"].iloc[0]
+    num_estimate = df_isoF["param_n_estimators"].iloc[0]
+    
+    IsoF_precision, IsoFrecall, IsoF1 = evaluate_ISF(pca_X_train, 
+                                                     pca_X_test, 
+                                                     np.ravel(y_train), 
+                                                     np.ravel(y_test), 
+                                                     n_estimate= num_estimate, 
+                                                     contam_ratio = val_contam, 
+                                                     )
+    
+    outputs = [IsoF_precision, IsoFrecall, IsoF1, lof_precision, lof_recall, lof_F1, df_lof, df_isoF, LoF_plot, IsoF_plot,
+               pca_X_train, pca_X_test, y_train, y_test, pca_X, y]
+
+    return outputs
 
 
 if __name__ == "__main__": 
-    df_lof, df_isoF, LoF_plot, IsoF_plot = hyper_parameter_pipe(num_sample=2000)
+    results = hyper_parameter_pipe(num_sample=2000)
+    IsoF_precision, IsoFrecall, IsoF1, lof_precision, lof_recall, lof_F1, df_lof, df_isoF, LoF_plot, IsoF_plot,pca_X_train, pca_X_test, y_train, y_test, pca_X, y = results
+
 
