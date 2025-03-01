@@ -1,22 +1,27 @@
 
 
 if __name__=='__main__':
+    # Import packages
     import argparse
     import numpy as np
     import os
     import pandas as pd
     import tensorflow as tf
 
+    # Import more packages
     from sklearn.ensemble import RandomForestClassifier
-    from sklearn.linear_model import LogisticRegression
+    from sklearn.linear_model import LogisticRegression, LinearRegression
+    from sklearn.linear_model import Lasso, Ridge, ElasticNet
     from sklearn.metrics import f1_score, accuracy_score, recall_score, precision_score
+    from sklearn.metrics import mean_squared_error
     from sklearn.neighbors import KNeighborsClassifier
     
+    # Import packages from this project
     from team17.super.functions import DataCleaningFunctions, LoadData
     from team17.super.functions import split_train_test_by_id, get_paths
     from team17.super.functions import DataIndex
     from team17.super.pipeline import full_pipeline
-    # from team17.super.evaluations import evaluate_model
+    from team17.super.evaluations import evaluate_model
 
 
     # Create argument parser 
@@ -75,8 +80,8 @@ if __name__=='__main__':
 
 
     # Create a data index
-    X_train_index = DataIndex('train', X_train.shape[0], 8000)
-    X_test_index = DataIndex('test', X_test.shape[0], 2000)
+    X_train_index = DataIndex('train', X_train.shape[0], 400)
+    X_test_index = DataIndex('test', X_test.shape[0], 100)
 
 
 
@@ -85,41 +90,41 @@ if __name__=='__main__':
 
     # Logistic Regression
     # Get a new index
-    # n_train = X_train_index.new_subset('Logistic Regression')
-    # n_test = X_test_index.new_subset('Logistic Regression')
+    n_train = X_train_index.new_subset('Logistic Regression')
+    n_test = X_test_index.new_subset('Logistic Regression')
 
-    # # Set up model and params
-    # log_reg = LogisticRegression(multi_class='multinomial', max_iter=200)
-    # param_grid = {
-    #         'C': [0.01, 0.1, 1, 10, 100],
-    #         'penalty': ['l1', 'l2'],   
-    #         'max_iter': [10, 100, 1000]        
-    #     }
+    # Set up model and params
+    log_reg = LogisticRegression(multi_class='multinomial', max_iter=200)
+    param_grid = {
+            'C': [0.01, 0.1, 1, 10, 100],
+            'penalty': ['l1', 'l2'],   
+            'max_iter': [10, 100, 1000]        
+        }
     
     # Evaluate
-    # log_reg_model = evaluate_model(
-    #     'Logistic Regression',
-    #     log_reg, 
-    #     param_grid, 
-    #     X_train[n_train,:], y_train[n_train],
-    #     X_test[n_test,:], y_test[n_test])
+    log_reg_model = evaluate_model(
+        'Logistic Regression',
+        log_reg, 
+        param_grid, 
+        X_train[n_train,:], y_train[n_train],
+        X_test[n_test,:], y_test[n_test])
 
-    # log_data = []
-    # for c in param_grid['C']:
-    #     for i in param_grid['max_iter']:
-    #         log_reg = LogisticRegression(C = c, multi_class='multinomial', max_iter=i)
-    #         log_reg.fit(X_train[n_train,:], y_train[n_train])
+    log_data = []
+    for c in param_grid['C']:
+        for i in param_grid['max_iter']:
+            log_reg = LogisticRegression(C = c, multi_class='multinomial', max_iter=i)
+            log_reg.fit(X_train[n_train,:], y_train[n_train])
 
-    #         y_pred = log_reg.predict(X_test[n_test,:])
-    #         acc = accuracy_score(y_test[n_test], y_pred)
-    #         rec = recall_score(y_test[n_test], y_pred, average='macro')
-    #         pre = precision_score(y_test[n_test], y_pred, average='macro')
-    #         f1 = f1_score(y_test[n_test], y_pred, average='macro')
-    #         log_data.append([c, i, acc, rec, pre, f1])
+            y_pred = log_reg.predict(X_test[n_test,:])
+            acc = accuracy_score(y_test[n_test], y_pred)
+            rec = recall_score(y_test[n_test], y_pred, average='macro')
+            pre = precision_score(y_test[n_test], y_pred, average='macro')
+            f1 = f1_score(y_test[n_test], y_pred, average='macro')
+            log_data.append([c, i, acc, rec, pre, f1])
     
-    # # Frame it and save it
-    # df = pd.DataFrame(log_data, columns=['C', 'Max Iter', 'Accuracy', 'Recall', 'Precision', 'F1'])
-    # df.to_csv(os.path.join(args.path_to_results, 'log_reg.csv'), index=False)
+    # Frame it and save it
+    df = pd.DataFrame(log_data, columns=['C', 'Max Iter', 'Accuracy', 'Recall', 'Precision', 'F1'])
+    df.to_csv(os.path.join(args.path_to_results, 'log_reg.csv'), index=False)
 
 
 
@@ -138,37 +143,37 @@ if __name__=='__main__':
         }
     
     # Evaluate
-    # rf_model = evaluate_model(
-    #     'Random Forest',
-    #     rf, param_grid,
-    #     X_train[n_train,:], y_train[n_train],
-    #     X_test[n_test], y_test[n_test])    
+    rf_model = evaluate_model(
+        'Random Forest',
+        rf, param_grid,
+        X_train[n_train,:], y_train[n_train],
+        X_test[n_test], y_test[n_test])    
 
-    # rf_data = []
-    # for e in param_grid['n_estimators']:
-    #     for d in param_grid['max_depth']:
-    #         for s in param_grid['min_samples_split']:
-    #             rf = RandomForestClassifier(
-    #                 n_estimators=e, 
-    #                 max_depth=d, 
-    #                 min_samples_split=s)
-    #             rf.fit(X_train[n_train,:], y_train[n_train])
-    #             y_pred = rf.predict(X_test[n_test,:])
-    #             acc = accuracy_score(y_test[n_test], y_pred)
-    #             rec = recall_score(y_test[n_test], y_pred, average='macro')
-    #             pre = precision_score(y_test[n_test], y_pred, average='macro')
-    #             f1 = f1_score(y_test[n_test], y_pred, average='macro')
-    #             rf_data.append([e, d, s, acc, rec, pre, f1])   
+    rf_data = []
+    for e in param_grid['n_estimators']:
+        for d in param_grid['max_depth']:
+            for s in param_grid['min_samples_split']:
+                rf = RandomForestClassifier(
+                    n_estimators=e, 
+                    max_depth=d, 
+                    min_samples_split=s)
+                rf.fit(X_train[n_train,:], y_train[n_train])
+                y_pred = rf.predict(X_test[n_test,:])
+                acc = accuracy_score(y_test[n_test], y_pred)
+                rec = recall_score(y_test[n_test], y_pred, average='macro')
+                pre = precision_score(y_test[n_test], y_pred, average='macro')
+                f1 = f1_score(y_test[n_test], y_pred, average='macro')
+                rf_data.append([e, d, s, acc, rec, pre, f1])   
 
-    #  # Frame it and save it
-    # df = pd.DataFrame(
-    #     rf_data, 
-    #     columns=[
-    #         'n_estimators', 
-    #         'max_depth',
-    #         'min_samples_split',
-    #         'Accuracy', 'Recall', 'Precision', 'F1'])
-    # df.to_csv(os.path.join(args.path_to_results, 'random_forest.csv'), index=False)               
+     # Frame it and save it
+    df = pd.DataFrame(
+        rf_data, 
+        columns=[
+            'n_estimators', 
+            'max_depth',
+            'min_samples_split',
+            'Accuracy', 'Recall', 'Precision', 'F1'])
+    df.to_csv(os.path.join(args.path_to_results, 'random_forest.csv'), index=False)               
 
 
 
@@ -185,32 +190,32 @@ if __name__=='__main__':
         }
 
     # Evaluate
-    # knn_model = evaluate_model(
-    #     'KNN',
-    #     knn, param_grid,
-    #     X_train[n_train,:], y_train[n_train],
-    #     X_test[n_test], y_test[n_test]) 
+    knn_model = evaluate_model(
+        'KNN',
+        knn, param_grid,
+        X_train[n_train,:], y_train[n_train],
+        X_test[n_test], y_test[n_test]) 
 
-    # knn_data = []
-    # for n in param_grid['n_neighbors']:
-    #     for w in param_grid['weights']:
-    #         knn = KNeighborsClassifier(n_neighbors=n, weights=w)
-    #         knn.fit(X_train[n_train,:], y_train[n_train])
-    #         y_pred = knn.predict(X_test[n_test,:])
-    #         acc = accuracy_score(y_test[n_test], y_pred)
-    #         rec = recall_score(y_test[n_test], y_pred, average='macro')
-    #         pre = precision_score(y_test[n_test], y_pred, average='macro')
-    #         f1 = f1_score(y_test[n_test], y_pred, average='macro')
-    #         knn_data.append([n, w, acc, rec, pre, f1])
+    knn_data = []
+    for n in param_grid['n_neighbors']:
+        for w in param_grid['weights']:
+            knn = KNeighborsClassifier(n_neighbors=n, weights=w)
+            knn.fit(X_train[n_train,:], y_train[n_train])
+            y_pred = knn.predict(X_test[n_test,:])
+            acc = accuracy_score(y_test[n_test], y_pred)
+            rec = recall_score(y_test[n_test], y_pred, average='macro')
+            pre = precision_score(y_test[n_test], y_pred, average='macro')
+            f1 = f1_score(y_test[n_test], y_pred, average='macro')
+            knn_data.append([n, w, acc, rec, pre, f1])
     
-    # # Frame it and save it
-    # df = pd.DataFrame(
-    #     knn_data, 
-    #     columns=[
-    #         'n_neighbors', 
-    #         'weights',
-    #         'Accuracy', 'Recall', 'Precision', 'F1'])
-    # df.to_csv(os.path.join(args.path_to_results, 'k_neighbors.csv'), index=False) 
+    # Frame it and save it
+    df = pd.DataFrame(
+        knn_data, 
+        columns=[
+            'n_neighbors', 
+            'weights',
+            'Accuracy', 'Recall', 'Precision', 'F1'])
+    df.to_csv(os.path.join(args.path_to_results, 'k_neighbors.csv'), index=False) 
 
 
     # Sequential
@@ -270,11 +275,92 @@ if __name__=='__main__':
             'dropout',
             'Accuracy', 'Recall', 'Precision', 'F1'])
     df.to_csv(os.path.join(args.path_to_results, 'sequential.csv'), index=False)  
+
+
+
+
+
+
+    ##### Regression
+
+
+    ## Linear Regression
+    # Get a new index
+    n_train = X_train_index.new_subset('Linear Regression')
+    n_test = X_test_index.new_subset('Linear Regression')
+
+    # Create a model
+    model = LinearRegression().fit(X_train[n_train,:], y_train[n_train])
+
+    # Predict
+    y_pred = model.predict(X_test[n_test,:])
+
+    # Evaluate the model
+    mse = mean_squared_error(y_test[n_test], y_pred)
+    regression_results_df = {
+        'model': ['Linear Regression'],
+        'mse': [mse]
+    }
+
+    # Visualize
+    r2_df = pd.DataFrame({
+        'Linear Regression Predictions': y_pred, 
+        'Linear Regression Actual': y_test[n_test],
+        'Linear Regression n': n_test
+    })
+    r2_df['Linear Regression RMS'] = np.sqrt((df['Linear Regression Actual'] - df['Linear Regression Predictions'])**2)
+
+
+    # Get a new index
+    n_train = X_train_index.new_subset('Lasso')
+    n_test = X_test_index.new_subset('Lasso')
+
+    # Lasso Regression
+    model = Lasso(alpha=0.1)
+    model.fit(X_train[n_train,:], y_train[n_train])
+    y_pred = model.predict(X_test[n_test,:])
+
+    # Update df
+    r2_df['Lasso Actual'] = y_test[n_test]
+    r2_df['Lasso Predictions'] = y_pred
+    r2_df['Lasso n'] = n_test
+
+    # Get a new index
+    n_train = X_train_index.new_subset('Ridge')
+    n_test = X_test_index.new_subset('Ridge')
+
+    # Ridge Regression
+    model = Ridge(alpha=0.9)
+    model.fit(X_train[n_train,:], y_train[n_train])
+    y_pred = model.predict(X_test[n_test,:])
+
+    # Update df
+    r2_df['Ridge Actual'] = y_test[n_test]
+    r2_df['Ridge Predictions'] = y_pred
+    r2_df['Ridge n'] = n_test
+
+    # Get a new index
+    n_train = X_train_index.new_subset('Elastic')
+    n_test = X_test_index.new_subset('Elastic')
+
+    # Elastic Net Regression
+    model = ElasticNet(alpha=0.5, l1_ratio=0.5)
+    model.fit(X_train[n_train,:], y_train[n_train])
+    y_pred = model.predict(X_test[n_test,:])
+
+    # Update df
+    r2_df['Elastic Actual'] = y_test[n_test]
+    r2_df['Elastic Predictions'] = y_pred
+    r2_df['Elastic n'] = n_test
+
+
+
+
     
     # Create dataframe with results
-    # results = [log_reg_model, rf_model, knn_model]
-    # results_df = pd.DataFrame([vars(model.score) for model in results])
-    # results_df.to_csv(os.path.join(args.path_to_results, 'results.csv'), index=False)
+    results = [log_reg_model, rf_model, knn_model]
+    results_df = pd.DataFrame([vars(model.score) for model in results])
+    results_df.to_csv(os.path.join(args.path_to_results, 'results.csv'), index=False)
 
     
 

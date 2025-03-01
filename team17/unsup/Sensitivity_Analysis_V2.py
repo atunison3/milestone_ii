@@ -3,39 +3,24 @@
 
 # ### Sensitivity Analysis
 # 
-# In this notebook, we'll evaluate how sensitive our anomaly detection model's performance is for test evaluation, when different sample sizes are passed. To do this, we'll call the get_data_pipe, review_models_pipe, and hyper_parameter_pipe in succession, and do this iteratively to understand the impact that data quantity has on our anomaly detection results. 
+# In this notebook, we'll evaluate how sensitive our anomaly detection model's 
+# performance is for test evaluation, when different sample sizes are passed. 
+# To do this, we'll call the get_data_pipe, review_models_pipe, and hyper_parameter_pipe 
+# in succession, and do this iteratively to understand the impact that data quantity has on 
+# our anomaly detection results. 
 # 
 # Let's begin
 
 # In[9]:
 
 
-#Import python libraries
+# Import python libraries
 import pandas as pd
 import numpy as np 
 import matplotlib.pyplot as plt
 import time 
-import os 
-from mpl_toolkits.mplot3d import Axes3D
-from scipy.interpolate import griddata
-
-#model options: 
-from sklearn.decomposition import PCA
-from sklearn.ensemble import IsolationForest
-from sklearn.svm import OneClassSVM #very slow
-from sklearn.neighbors import LocalOutlierFactor
-
-#model eval packages
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import make_scorer
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.metrics import calinski_harabasz_score
-from sklearn.neighbors import LocalOutlierFactor
-from sklearn.model_selection import KFold
-from sklearn.metrics import precision_score, recall_score, accuracy_score
 
 #Import python scripts
-import Prep_data_UL_V2
 import Unsupervised_Learning_V3
 import Unsupervised_Learning_Hyper_param
 
@@ -45,17 +30,18 @@ import Unsupervised_Learning_Hyper_param
 def get_data_pipe2(
     dropword: str = None, num_sample: int = 5000
     ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]: 
-    """This function serves as the data retrieval pipeline for unsupervised learning. It retrieves the scaled, transformed 
-    datasets, then identifies optimal principal components for 95% variance retention, and finally transforms the data to
-    be represented by the dimensional feature space of the principal components. 
+    """This function serves as the data retrieval pipeline for unsupervised learning. It retrieves the scaled, 
+    transformed datasets, then identifies optimal principal components for 95% variance retention, and finally 
+    transforms the data to be represented by the dimensional feature space of the principal components. 
     
     INPUTS:
     num_sample, an interger which specifies how many records to pull from the original dataset for modeling purposes
     
     OUTPUTS: 
-    PCA_X_train, PCA_X_test, y_train, y_test, PCA_X, y. Each are pandas dataframes. X's referring to predictor features, y's 
-    to the target feature dataframe.
+    PCA_X_train, PCA_X_test, y_train, y_test, PCA_X, y. Each are pandas dataframes. X's referring 
+    to predictor features, y's to the target feature dataframe.
     """
+
     X_train, X_test, y_train, y_test = Unsupervised_Learning_V3.load_downsample(num_sample)
     X_train, X_test = X_train.reset_index(drop=True), X_test.reset_index(drop=True)
     y_train, y_test = y_train.reset_index(drop=True), y_test.reset_index(drop=True)
@@ -73,7 +59,8 @@ def get_data_pipe2(
     X = X[temp_words] 
     
     # Find the optimal number of components for dimension reduction
-    optimal_n_components, pca_X = Unsupervised_Learning_V3.evaluate_pca(X_train, variance_retention=0.95, view_plot=True)
+    optimal_n_components, pca_X = Unsupervised_Learning_V3.evaluate_pca(
+        X_train, variance_retention=0.95, view_plot=True)
 
     # Apply PCA to the 
     pca_X_train, pca_X_test, pca_X = Unsupervised_Learning_V3.apply_PCA(X_train, X_test, X, optimal_n_components)
@@ -81,7 +68,14 @@ def get_data_pipe2(
     return(pca_X_train, pca_X_test, y_train, y_test, pca_X, y)
 
 
-def hyper_parameter_pipe2(dropword = None, num_sample=1000):
+def hyper_parameter_pipe2(
+    dropword = None, num_sample: int = 1000
+    ) -> list[
+        float, float, float, float, float, float, 
+        pd.DataFrame, pd.DataFrame, 
+        
+    ]:
+    '''Perform hyper parameter searching on multiple models'''
     
     #Get training data for hyper-param analysis
     pca_X_train, pca_X_test, y_train, y_test, pca_X, y = get_data_pipe2(dropword = dropword, num_sample=num_sample)
@@ -115,13 +109,15 @@ def hyper_parameter_pipe2(dropword = None, num_sample=1000):
     df_isoF = df_isoF.sort_values(by='rank_test_score', ascending=True).reset_index(drop=True)
         
     #plot results: 
-    LoF_plot = Unsupervised_Learning_Hyper_param.hyper_parameter_plotting(df_lof, model_type="LoF", col_x="param_leaf_size", col_y="param_n_neighbors", 
-                             col_z="rank_test_score", x_name = "Leaf Size", y_name = "Number of Neighbors", 
-                             z_name = "Score Rank", fig_rotation=140)
+    LoF_plot = Unsupervised_Learning_Hyper_param.hyper_parameter_plotting(
+        df_lof, model_type="LoF", col_x="param_leaf_size", col_y="param_n_neighbors", 
+        col_z="rank_test_score", x_name = "Leaf Size", y_name = "Number of Neighbors", 
+        z_name = "Score Rank", fig_rotation=140)
 
-    IsoF_plot = Unsupervised_Learning_Hyper_param.hyper_parameter_plotting(df_isoF, model_type="IsoF", col_x="param_n_estimators", col_y="param_contamination", 
-                             col_z="rank_test_score", x_name = "Number of Estimators", y_name = "Contamination Ratio", 
-                             z_name = "Score Rank", fig_rotation=140)
+    IsoF_plot = Unsupervised_Learning_Hyper_param.hyper_parameter_plotting(
+        df_isoF, model_type="IsoF", col_x="param_n_estimators", col_y="param_contamination", 
+        col_z="rank_test_score", x_name = "Number of Estimators", y_name = "Contamination Ratio", 
+        z_name = "Score Rank", fig_rotation=140)
 
     #Now score the model for anomaly identification: 
     algo = df_lof["param_algorithm"].iloc[0]
@@ -151,8 +147,12 @@ def hyper_parameter_pipe2(dropword = None, num_sample=1000):
                                                      contam_ratio = val_contam, 
                                                      )
     
-    outputs = [IsoF_precision, IsoFrecall, IsoF1, lof_precision, lof_recall, lof_F1, df_lof, df_isoF, LoF_plot, IsoF_plot,
-               pca_X_train, pca_X_test, y_train, y_test, pca_X, y]
+    outputs = [
+        IsoF_precision, IsoFrecall, IsoF1, 
+        lof_precision, lof_recall, lof_F1, 
+        df_lof, df_isoF, 
+        LoF_plot, IsoF_plot, 
+        pca_X_train, pca_X_test, y_train, y_test, pca_X, y]
     
     end = time.time() 
     print("hyper-parameters finished in ", (end-start)/60, "min") 
@@ -163,9 +163,11 @@ def hyper_parameter_pipe2(dropword = None, num_sample=1000):
 if __name__ == "__main__": 
     #Examine the impact of removing specific features from the analysis: 
     sample_size = 2000
-    potential_strings = ['power', 'connector', 'pricing', 'region', 'land_use', 'metro_area', 'charge_level', 'venue', 'total_duration',
-     'charge_duration', 'energy_kwh', 'start_soc', 'end_soc', 'soc_charged', 'num_ports', 'connector_number',
-     'year', 'month', 'day']
+    potential_strings = [
+        'power', 'connector', 'pricing', 'region', 'land_use', 
+        'metro_area', 'charge_level', 'venue', 'total_duration',
+        'charge_duration', 'energy_kwh', 'start_soc', 'end_soc', 'soc_charged', 
+        'num_ports', 'connector_number', 'year', 'month', 'day']
     
     #Set lists for caching results
     keyword_list = []
@@ -184,7 +186,7 @@ if __name__ == "__main__":
 
         #Get results 
         results = hyper_parameter_pipe2(dropword, num_sample=sample_size)
-        IsoF_precision, IsoFrecall, IsoF1, lof_precision, lof_recall, lof_F1, df_lof, df_isoF, LoF_plot, IsoF_plot,pca_X_train, pca_X_test, y_train, y_test, pca_X, y = results
+        IsoF_precision, IsoFrecall, IsoF1, lof_precision, lof_recall, lof_F1, df_lof, df_isoF, LoF_plot, IsoF_plot,pca_X_train, pca_X_test, y_train, y_test, pca_X, y = results  # noqa: E501
         
         #Store the results 
         keyword_list .append(dropword)

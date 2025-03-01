@@ -16,14 +16,10 @@ from sklearn.decomposition import PCA
 from sklearn.ensemble import IsolationForest
 from sklearn.svm import OneClassSVM #very slow
 from sklearn.neighbors import LocalOutlierFactor
-from sklearn.cluster import DBSCAN
 
 #model eval packages
 from sklearn.base import BaseEstimator
-from sklearn.model_selection import KFold
-from sklearn.metrics import precision_score, recall_score, accuracy_score
 from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score, silhouette_score
-from sklearn.metrics import roc_curve
 
 #Import pyscripts 
 import Prep_data_UL_V2
@@ -49,17 +45,19 @@ def load_downsample(num_sample: int = 5000) -> tuple[pd.DataFrame, pd.DataFrame,
         else: 
             load_file = True
     
-    if load_file == True: 
+    if load_file: 
         X_train = pd.read_csv(file_list[0])
         X_test = pd.read_csv(file_list[1])
         y_train = pd.read_csv(file_list[2])
         y_test = pd.read_csv(file_list[3])
         
     else: 
-        X_train, X_test, y_train, y_test = Prep_data_UL_V2.main_execution(input_condition=1, test_ratio=0.2, anomaly_list=None)
+        X_train, X_test, y_train, y_test = Prep_data_UL_V2.main_execution(
+            input_condition=1, test_ratio=0.2, anomaly_list=None)
     
     # Down-sampling
-    if num_sample > len(y_test): num_sample = len(y_test) 
+    if num_sample > len(y_test): 
+        num_sample = len(y_test) 
     X_train = X_train.sample(num_sample) 
     X_test = X_test.sample(num_sample) 
     y_train = y_train.sample(num_sample)
@@ -102,14 +100,17 @@ def evaluate_pca(
 
     X_plot = range(1, len(cumulative_variance) + 1)
     #plot the variance vs. PCA num. 
-    if view_plot == True: 
+    if view_plot: 
         plt.plot(X_plot, cumulative_variance, marker='o')
         plt.xlabel('Number of Components')
         plt.ylabel('Cumulative Explained Variance')
         plt.title('Explained Variance vs. Number of PCA Components')
         plt.text(0.6*X_plot[-1], 0.75, f"{optimal_n_components} Components Required to\n Capture 95% Variance",
                  bbox=dict(facecolor='white', edgecolor='royalblue', boxstyle='round,pad=0.5'))
-        plt.figtext(0.5, -0.05, """Number of required dimensions to achieve 95% Variance retention while considering EV  
+        plt.figtext(
+            0.5, 
+            -0.05, 
+            """Number of required dimensions to achieve 95% Variance retention while considering EV  
         Watts data for anomaly detection via Unsupervised learning""", 
                 wrap=True, horizontalalignment='center', fontsize=10, fontstyle='italic')
         plt.show()
@@ -199,7 +200,7 @@ def evaluate_OCSVM(
 
     end = time.time() 
     duration = np.round((end-start) / 60, 1)
-    print("Total completion time, 1 iter: {duration}min")
+    print(f"Total completion time, 1 iter: {duration}min")
 
     return precision, recall, F1 
 
@@ -233,7 +234,6 @@ def get_scores(input_prediction: np.array, input_data: np.array) -> tuple[float,
 
     # Calculate true/false positives/negatives
     TP = np.sum((input_prediction == 1) & (input_data == 1))
-    TN = np.sum((input_prediction == 0) & (input_data == 0))
     FP = np.sum((input_prediction == 1) & (input_data == 0))
     FN = np.sum((input_prediction == 0) & (input_data == 1))   
 
@@ -246,16 +246,17 @@ def get_scores(input_prediction: np.array, input_data: np.array) -> tuple[float,
 
 
 def get_data_pipe(num_sample: int = 5000) -> tuple[np.array, np.array, np.array, np.array, np.array, np.array]: 
-    """This function serves as the data retrieval pipeline for unsupervised learning. It retrieves the scaled, transformed 
-    datasets, then identifies optimal principal components for 95% variance retention, and finally transforms the data to
-    be represented by the dimensional feature space of the principal components. 
+    """This function serves as the data retrieval pipeline for unsupervised learning. It retrieves the scaled, 
+    transformed datasets, then identifies optimal principal components for 95% variance retention, 
+    and finally transforms the data to be represented by the dimensional feature space of 
+    the principal components. 
     
     INPUTS: 
     num_sample, an interger which specifies how many records to pull from the original dataset for modeling purposes
     
     OUTPUTS: 
-    PCA_X_train, PCA_X_test, y_train, y_test, PCA_X, y. Each are pandas dataframes. X's referring to predictor features, y's 
-    to the target feature dataframe.
+    PCA_X_train, PCA_X_test, y_train, y_test, PCA_X, y. Each are pandas dataframes. X's referring to 
+    predictor features, y's to the target feature dataframe.
     """
     
     # Load the data
@@ -297,7 +298,7 @@ def evaluate_model_cluster(
     
     #Score performance               
     ch_score = calinski_harabasz_score(input_X_train, input_y_train)
-    if all_scores == True: 
+    if all_scores: 
         db_score = davies_bouldin_score(input_X_train, input_y_train)
         sil_score = silhouette_score(input_X_train, input_y_train)
     else: 
@@ -317,19 +318,18 @@ def review_models_pipe(
     
     #Let's setup the pipeline for evaluation 
     
-    #list of models & their names  
+    # List of models & their names  
     models = [IsolationForest(),OneClassSVM(),LocalOutlierFactor(novelty=True)] 
     names = ["Isolation Forest", "OC-SVM", "LOF"] 
     
-    #Setup empty list for model results 
+    # Setup empty list for model results 
     model_list = []
     score_ch_train_list = []
     score_db_train_list = []
     score_si_list = []
     
-    #setup cross val: 
+    # Setup cross val: 
     n_splits = 5
-    train_size = 0.8 
     
     for name, model in zip(names, models): 
         print(f'Beginning K-fold training and evaluation for {name}')    
@@ -340,12 +340,16 @@ def review_models_pipe(
         
 
         for i in range(n_splits):
-            sample_indices = np.random.choice(len(input_X), size=int(len(input_X)/n_splits), replace=False)
+            sample_indices = np.random.choice(len(input_X), size=int(len(input_X) / n_splits), replace=False)
             
             temp_X_train = input_X[sample_indices]
             temp_y_train = input_y[sample_indices]
             
-            temp_score_ch_train, temp_score_db_train, temp_score_si = evaluate_model_cluster(model, temp_X_train, temp_y_train, all_scores)
+            temp_score_ch_train, temp_score_db_train, temp_score_si = evaluate_model_cluster(
+                model, 
+                temp_X_train, 
+                temp_y_train, 
+                all_scores)
             temp_score_ch_train_list.append(temp_score_ch_train)
             temp_score_db_train_list.append(temp_score_db_train)
             temp_score_si_list.append(temp_score_si)
@@ -361,8 +365,11 @@ def review_models_pipe(
         duration = np.round((stop - start) / 60,1) 
         print(f'Finished K-fold training and evaluation for {name} in {duration}min')     
     
-    evaluation_df = pd.DataFrame({"Model": model_list, "Calinski-Harabasz": score_ch_train_list, "Davies-Bouldin": score_db_train_list, 
-                                  "Silhouette": score_si_list}) 
+    evaluation_df = pd.DataFrame({
+        "Model": model_list, 
+        "Calinski-Harabasz": score_ch_train_list, 
+        "Davies-Bouldin": score_db_train_list, 
+        "Silhouette": score_si_list}) 
 
     evaluation_df = evaluation_df.sort_values(by="Calinski-Harabasz", ascending=False).reset_index(drop=True)
     evaluation_df = evaluation_df.dropna(axis=1)
@@ -372,7 +379,7 @@ def review_models_pipe(
 
 if __name__ == "__main__": 
     pca_X_train, pca_X_test, y_train, y_test, pca_X, y = get_data_pipe(num_sample=40000)
-    test = review_models3(pca_X, np.ravel(y))
+    test = review_models_pipe(pca_X, np.ravel(y))
     test
 
 
