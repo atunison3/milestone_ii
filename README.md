@@ -21,6 +21,7 @@ We recommend placing all these files in an `assets` folder and saving the folder
 ### Windows
 1. Create the virtual environment:
   ```sh
+  python3.10 -m pip install --upgrade pip
   python3.10 -m venv .venv
   ```
 2. Activate the virtual environment:
@@ -40,6 +41,7 @@ We recommend placing all these files in an `assets` folder and saving the folder
 ### Mac
 1. Create the virtual environment:
   ```sh
+  python3.10 -m pip install --upgrade pip
   python3.10 -m venv .venv
   ```
 2. Activate the virtual environment:
@@ -48,6 +50,7 @@ We recommend placing all these files in an `assets` folder and saving the folder
   ```
 3. Install requirements.txt
   ```sh
+  pip install --upgrade pip
   pip install -r requirements.txt
   ```
 4. Build source code and install local pacakge
