@@ -47,3 +47,30 @@ full_pipeline = FeatureUnion(transformer_list=[
         ('num_pipeline', num_pipeline),
         ('cat_pipeline', cat_pipeline)
     ])
+
+def build_pipeline(
+    cat_features: list[str],
+    num_features: list[str] = num_features) -> FeatureUnion:
+    '''Build a pipeline for ablation testing'''
+
+    # Create pipelines
+    num_pipeline = Pipeline([
+            ('selector', DataFrameSelector(num_features)),
+            ('imputer', SimpleImputer(strategy='median')),
+            ('std_scaler', StandardScaler())
+        ])
+
+    cat_pipeline = Pipeline([
+            ('selector', DataFrameSelector(cat_features)),
+            ('convert_to_string', string_converter),
+            ('label_binarizer', MyLabelBinarizer())
+        ])
+
+    # Combine to full pipeline
+    full_pipeline = FeatureUnion(transformer_list=[
+            ('num_pipeline', num_pipeline),
+            ('cat_pipeline', cat_pipeline)
+        ])
+
+    return full_pipeline
+

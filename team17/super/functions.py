@@ -90,7 +90,7 @@ class DataCleaningFunctions:
         '''Function to clean dataset'''
         # Filter data
         df = df[(df.end_soc - df.start_soc) > 0]  # Anomalies
-        df = df[df.end_soc >= 0.95]  # Anything before this, the operator disconnected before finishing
+        df = df[df.end_soc >= 0.95]      # Anything before this, the operator disconnected before finishing
         df = df[df.charge_duration <= 1]  # People be leaving these on the chargers
         df = df[df['flag_id'] == 0]
         df = df[(df['energy_kwh'] / df['charge_duration']) < 350]
@@ -129,10 +129,24 @@ class LoadData:
 
         return df 
 
-    def merge_data(sessions: pd.DataFrame, evse: pd.DataFrame) -> pd.DataFrame:
+    def load_connector(path: Path = Path('assets/evwatts.public.connector.csv')) -> pd.DataFrame:
+        '''Loads the connector data'''
+
+        # Read in the csv 
+        df = pd.read_csv(path)
+
+        return df
+
+    def merge_data(
+        sessions: pd.DataFrame, 
+        evse: pd.DataFrame,
+        connector: pd.DataFrame) -> pd.DataFrame:
         '''Merges the data'''
 
-        return pd.merge(sessions, evse, how='left', on='evse_id')
+        # Merge the connectors and evse 
+        temp_df = pd.merge(evse, connector[['evse_id', 'power_kw']], how='left', on='evse_id')
+
+        return pd.merge(sessions, temp_df, how='left', on='evse_id')
 
 class DataIndex:
     def __init__(self, dataset_name: str, n: int, n_samples: int = 200):
@@ -168,8 +182,6 @@ class DataIndex:
 
         return self._subsets[subset_name]
 
-
-
 def chart_topologogical(source: pd.DataFrame) -> alt.Chart:
     '''Creates a geoplot used in the data cleaning
     
@@ -201,7 +213,6 @@ def chart_topologogical(source: pd.DataFrame) -> alt.Chart:
 
 
     return (background + points).properties(title='Mean Charge Duration By Metro Area')
-
 
 def test_set_check(identifier: int, test_ratio: float, hash: callable) -> bool:
     '''Checks if instance is splitable or not'''

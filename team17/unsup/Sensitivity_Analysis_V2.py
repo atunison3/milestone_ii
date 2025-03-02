@@ -206,14 +206,14 @@ if __name__ == "__main__":
         print("==========================")
     
     
-    output_dataframe = pd.DataFrame({"Excluded Feature":keyword_list, 
-                                     "Resulting IsoF Recall":IsoFrecall_list, 
-                                     "Resulting lof Recall":lof_recall_list, 
-                                     "Resulting IsoF precision":IsoF_precision_list, 
-                                     "Resulting lof precision":lof_precision_list, 
-                                     "Resulting IsoF F1":IsoF1_list, 
-                                     "Resulting lof F1":lof_F1_list, 
-                                     "sample size":sample_size_list})
+    output_dataframe = pd.DataFrame({"Excluded Feature": keyword_list, 
+                                     "Resulting IsoF Recall": IsoFrecall_list, 
+                                     "Resulting lof Recall": lof_recall_list, 
+                                     "Resulting IsoF precision": IsoF_precision_list, 
+                                     "Resulting lof precision": lof_precision_list, 
+                                     "Resulting IsoF F1": IsoF1_list, 
+                                     "Resulting lof F1": lof_F1_list, 
+                                     "sample size": sample_size_list})
     
     output_dataframe.to_csv("Feature_influence_on_Anomaly_Identification.csv", index=False)
     
