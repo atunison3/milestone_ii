@@ -5,6 +5,19 @@ Collaboration repo for MADS Milestone II
 
 Please note, this project requires Python 3.10.
 
+## Download Data 
+
+To download the data go to https://livewire.energy.gov/ds/evwatts/evwatts.public. There you 
+will need to register and download the necessary files. Once the files are downloaded you should 
+have something that resembles: 
+
+- evwatts.public.connector.csv
+- evwatts.public.evse.csv
+- ...
+
+We recommend placing all these files in an `assets` folder and saving the folder under the 
+`team17` directory. You will need to point to this directory later. 
+
 ### Windows
 1. Create the virtual environment:
   ```sh
@@ -63,6 +76,12 @@ default of `assets` as an assets directory was established under team17 (see tro
 more info). The path to assets is a string that points to a folder with all the evwatts data in it. 
 The `path_to_results` is also a string. It points to a directory on your computer that will be 
 used to store the results generated from the analysis. 
+
+Example:
+```sh
+cd team17
+python -m supervised /Users/user_name/Downloads 
+```
 
 ## Unsupervised Learning
 
