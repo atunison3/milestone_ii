@@ -5,6 +5,7 @@ assets/
 
 # python environmnts
 .venv/
+env/
 dist/
 __pycache__/
 
@@ -12,8 +13,11 @@ __pycache__/
 exploration.ipynb
 .DS_*
 .ruff_cache/
+*_checkpoints/
 
 # Other
 *.egg*
 results.csv
+
+team17_*/
 

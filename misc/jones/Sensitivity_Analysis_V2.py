@@ -56,6 +56,7 @@ def get_data_pipe2(
     PCA_X_train, PCA_X_test, y_train, y_test, PCA_X, y. Each are pandas dataframes. X's referring to predictor features, y's 
     to the target feature dataframe.
     """
+
     X_train, X_test, y_train, y_test = Unsupervised_Learning_V3.load_downsample(num_sample)
     X_train, X_test = X_train.reset_index(drop=True), X_test.reset_index(drop=True)
     y_train, y_test = y_train.reset_index(drop=True), y_test.reset_index(drop=True)
@@ -81,7 +82,14 @@ def get_data_pipe2(
     return(pca_X_train, pca_X_test, y_train, y_test, pca_X, y)
 
 
-def hyper_parameter_pipe2(dropword = None, num_sample=1000):
+def hyper_parameter_pipe2(
+    dropword = None, num_sample: int = 1000
+    ) -> list[
+        float, float, float, float, float, float, 
+        pd.DataFrame, pd.DataFrame, 
+        
+    ]:
+    '''Perform hyper parameter searching on multiple models'''
     
     #Get training data for hyper-param analysis
     pca_X_train, pca_X_test, y_train, y_test, pca_X, y = get_data_pipe2(dropword = dropword, num_sample=num_sample)
@@ -151,8 +159,12 @@ def hyper_parameter_pipe2(dropword = None, num_sample=1000):
                                                      contam_ratio = val_contam, 
                                                      )
     
-    outputs = [IsoF_precision, IsoFrecall, IsoF1, lof_precision, lof_recall, lof_F1, df_lof, df_isoF, LoF_plot, IsoF_plot,
-               pca_X_train, pca_X_test, y_train, y_test, pca_X, y]
+    outputs = [
+        IsoF_precision, IsoFrecall, IsoF1, 
+        lof_precision, lof_recall, lof_F1, 
+        df_lof, df_isoF, 
+        LoF_plot, IsoF_plot, 
+        pca_X_train, pca_X_test, y_train, y_test, pca_X, y]
     
     end = time.time() 
     print("hyper-parameters finished in ", (end-start)/60, "min") 

@@ -3,6 +3,8 @@ Collaboration repo for MADS Milestone II
 
 ## Setting up the Virtual Environment
 
+Please note, this project requires Python 3.10.
+
 ### Windows
 1. Create the virtual environment:
   ```sh
@@ -51,3 +53,8 @@ Collaboration repo for MADS Milestone II
 3. Feel free to use any of the exploratory notebooks to check out the data
 
 > Data will automatically be downloaded within the main script. There will be no CSVs stored directly in this repo
+
+
+# Supervised Learning
+
+Running the supervised learning portion of this project is accomplished by running team17
