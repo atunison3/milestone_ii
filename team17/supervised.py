@@ -50,7 +50,7 @@ if __name__=='__main__':
     parser.add_argument(
         'path_to_results', 
         help='Path to directory to save results to.')
-    parser.add_argument('--path_to_assets', default='assets')
+    parser.add_argument('--path_to_assets', default='assets_reduced')
     args = parser.parse_args()
 
     print(args.path_to_assets)

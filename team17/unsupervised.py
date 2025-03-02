@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('path_to_results')
-    parser.add_argument('--path_to_assets', default='assets')
+    parser.add_argument('--path_to_assets', default='assets_reduced')
     parser.add_argument('--input_condition1', type=int, default=2)
     parser.add_argument('--input_condition2', type=int, default=1)
     parser.add_argument('--num_sample1', type=int, default=40000)
@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     # Perform EDA 2
     print("\033[32mPerforming EDA Part 2\033[0m")
-    df = combine_charging_data(input_condition=args.input_condition1)
+    df = combine_charging_data(input_condition=args.input_condition1, assets_path=args.path_to_assets)
     generate_desired_plots(df)
 
     # Perform Prep data
