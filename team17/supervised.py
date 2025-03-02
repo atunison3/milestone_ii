@@ -21,6 +21,9 @@ if __name__=='__main__':
     import numpy as np
     import os
     import tensorflow as tf
+    import warnings
+
+    warnings.filterwarnings("ignore")
 
     # Import more packages
     from sklearn.ensemble import RandomForestClassifier

@@ -392,7 +392,7 @@ def hist_plotter(
     plt.show()
 
 
-def create_desired_plots(input_df: pd.Dataframe) -> None: 
+def create_desired_plots(input_df: pd.DataFrame) -> None: 
     """
     This function creates 4 figures that are useful for exploratory data analysis of the EV public charging dataset
     Fig 1. Shows the normalized distribution of charging metrics, including faulty charging events
@@ -434,11 +434,10 @@ def create_desired_plots(input_df: pd.Dataframe) -> None:
                  )
 
 
-def show_EDA1_results():
+def show_EDA1_results(filepath: str) -> None:
     """This function runs the desired process to create the desired violin and histogram plots"""
     
     # Read the data
-    filepath = r'data\\evwatts.public.session.csv'
     df = pd.read_csv(filepath) #Read file
     df["soc_charged"] = df["end_soc"] - df["start_soc"]  #calculate the SOC charged during event
     

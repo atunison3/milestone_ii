@@ -6,14 +6,14 @@
 
 #This script will be used to perform the data cleaning and preparation tasks required for unsupervised learning
 
-#import necessary packages 
+# Import necessary packages 
 import os
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder, StandardScaler 
 from sklearn.model_selection import train_test_split 
 
-#import relavent pyscripts: 
-import EDA_part2
+# Import relavent pyscripts: 
+from .EDA_part2 import combine_charging_data
 
 def transform_data(
     input_df: pd.DataFrame, remove_cols: list, 
@@ -124,7 +124,7 @@ def anomaly_tags(
 
 
 def main_execution(
-    input_condition: int = 1, test_ratio: float = 0.2, 
+    path_to_results: str, input_condition: int = 1, test_ratio: float = 0.2,
     anomaly_list: list[int] = None) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]: 
     """
     This function runs the main execution to process the data into train, val, and test datasets
@@ -139,7 +139,7 @@ def main_execution(
     Y_train, y_val, & y_test:    
     """
     # Get the dataframe processed
-    merged_df = EDA_part2.combine_charging_data(input_condition)
+    merged_df = combine_charging_data(input_condition)
     merged_time_df = process_datetime(merged_df)
     mapped_df = anomaly_tags(merged_time_df, anomaly_list=anomaly_list)
     mapped_df = mapped_df.dropna()
@@ -161,9 +161,10 @@ def main_execution(
     # Output to datafile for future calling if not already in cwd: 
     dir_contents = os.listdir()
     outdict = {"UL_Xtrain.csv": X_train, "UL_Xtest.csv": X_test, "UL_ytrain.csv": y_train, "UL_ytest.csv": y_test}
-    for k,v in outdict.items(): 
-        if k not in dir_contents: 
-            v.to_csv(k, index=False)
+    for key, value in outdict.items(): 
+        if key not in dir_contents: 
+            path_to_file = os.path.join(path_to_results, key)
+            value.to_csv(path_to_file, index=False)
 
     return (X_train, X_test, y_train, y_test)
 
@@ -171,8 +172,6 @@ def main_execution(
 if __name__ == "__main__":
     X_train, X_test, y_train, y_test = main_execution(input_condition=1)
 
-
-# In[ ]:
 
 
 

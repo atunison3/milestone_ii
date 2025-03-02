@@ -1,38 +1,31 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# ### Hyperparameter Tuning
-
-# In[40]:
+### Hyperparameter Tuning
 
 
-#Import general packages
+# Import general packages
 import time
 import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt
-# from mpl_toolkits.mplot3d import Axes3D
 from scipy.interpolate import griddata
-from typing import Self
 
-#model options: 
+# Model options: 
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 
-#model eval packages
+# Model eval packages
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import calinski_harabasz_score
 
-#Import pyscripts 
-import Unsupervised_Learning_V3
+# Import pyscripts 
+from .Unsupervised_Learning_V3 import get_data_pipe
 
 class Timer:
     def __init__(self):
         self.start_time = time.time() 
 
     def stop(self):
-        self.end = time.time()
-        self.duration = np.round((self.end - self.start) / 60, 1)
+        self.end_time = time.time()
+        self.duration = np.round((self.end_time - self.start_time) / 60, 1)
         print(f"LOF Evaluation Finished in: {self.duration} min")
 
 
@@ -161,7 +154,7 @@ def lof_sensitivity_analysis(
             metric: str = 'minkowski', p: int = 2):
             super().__init__(n_neighbors=n_neighbors, algorithm=algorithm, leaf_size=leaf_size, metric=metric, p=p)
     
-        def fit(self, X: pd.DataFrame, y: pd.DataFrame = None) -> Self:
+        def fit(self, X: pd.DataFrame, y: pd.DataFrame = None):
             self.model = LocalOutlierFactor(
                 n_neighbors=self.n_neighbors,
                 algorithm=self.algorithm,
@@ -236,7 +229,7 @@ def IsoF_sensitivity_analysis(
             contamination: str = 'auto', max_features: float = 1.0, bootstrap: bool = False):
             super().__init__(n_estimators=n_estimators,contamination=contamination)
         
-        def fit(self, X: pd.DataFrame, y: list = None) -> Self:
+        def fit(self, X: pd.DataFrame, y: list = None):
             '''Creates a fits a model'''
 
             # Initialize model
@@ -355,11 +348,12 @@ def hyper_parameter_plotting(
     plt.show()
 
 
-def hyper_parameter_pipe(num_sample: int = 1000) -> list:
+def hyper_parameter_pipe(path_to_results: str, num_sample: int = 1000) -> list:
     '''Perform hyper parameter pipeline'''
     
     # Get training data for hyper-param analysis
-    pca_X_train, pca_X_test, y_train, y_test, pca_X, y = Unsupervised_Learning_V3.get_data_pipe(num_sample=num_sample)
+    pca_X_train, pca_X_test, y_train, y_test, pca_X, y = get_data_pipe(
+        path_to_results, num_sample=num_sample)
 
     # Set LoF hyper params to grid-search evaluate
     neighbor_list = [5, 10, 15, 20, 30, 40]
@@ -432,7 +426,7 @@ def hyper_parameter_pipe(num_sample: int = 1000) -> list:
         pca_X_train, pca_X_test, y_train, y_test, pca_X, y]
 
     # Stop the timer
-    timer.end()
+    timer.stop()
 
     return outputs
 

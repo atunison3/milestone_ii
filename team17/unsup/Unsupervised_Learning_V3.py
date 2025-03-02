@@ -22,10 +22,12 @@ from sklearn.base import BaseEstimator
 from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score, silhouette_score
 
 #Import pyscripts 
-import Prep_data_UL_V2
+from .Prep_data_UL_V2 import main_execution
 
 
-def load_downsample(num_sample: int = 5000) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]: 
+def load_downsample(
+    path_to_results: str, num_sample: int = 5000, 
+    ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]: 
     """
     This function takes the number of sample points given, and down-samples the test and train dataset accordingly. 
     If the downsample amount is greater than the test dataset, then the downsample size is set to the length of the 
@@ -36,7 +38,7 @@ def load_downsample(num_sample: int = 5000) -> tuple[pd.DataFrame, pd.DataFrame,
     """
     
     # Look for the training/test data
-    dir_contents = os.listdir()
+    dir_contents = os.listdir(path_to_results)
     file_list = ["UL_Xtrain.csv", "UL_Xtest.csv", "UL_ytrain.csv", "UL_ytest.csv"]
     for file in file_list:
         if file not in dir_contents:
@@ -46,13 +48,14 @@ def load_downsample(num_sample: int = 5000) -> tuple[pd.DataFrame, pd.DataFrame,
             load_file = True
     
     if load_file: 
-        X_train = pd.read_csv(file_list[0])
-        X_test = pd.read_csv(file_list[1])
-        y_train = pd.read_csv(file_list[2])
-        y_test = pd.read_csv(file_list[3])
+        X_train = pd.read_csv(os.path.join(path_to_results, file_list[0]))
+        X_test = pd.read_csv(os.path.join(path_to_results, file_list[1]))
+        y_train = pd.read_csv(os.path.join(path_to_results, file_list[2]))
+        y_test = pd.read_csv(os.path.join(path_to_results, file_list[3]))
         
     else: 
-        X_train, X_test, y_train, y_test = Prep_data_UL_V2.main_execution(
+        X_train, X_test, y_train, y_test = main_execution(
+            path_to_results, 
             input_condition=1, test_ratio=0.2, anomaly_list=None)
     
     # Down-sampling
@@ -245,7 +248,9 @@ def get_scores(input_prediction: np.array, input_data: np.array) -> tuple[float,
     return precision, recall, F1
 
 
-def get_data_pipe(num_sample: int = 5000) -> tuple[np.array, np.array, np.array, np.array, np.array, np.array]: 
+def get_data_pipe(
+    path_to_results: str, num_sample: int = 5000
+    ) -> tuple[np.array, np.array, np.array, np.array, np.array, np.array]: 
     """This function serves as the data retrieval pipeline for unsupervised learning. It retrieves the scaled, 
     transformed datasets, then identifies optimal principal components for 95% variance retention, 
     and finally transforms the data to be represented by the dimensional feature space of 
@@ -260,7 +265,7 @@ def get_data_pipe(num_sample: int = 5000) -> tuple[np.array, np.array, np.array,
     """
     
     # Load the data
-    X_train, X_test, y_train, y_test = load_downsample(num_sample)
+    X_train, X_test, y_train, y_test = load_downsample(path_to_results, num_sample)
     X_train, X_test = X_train.reset_index(drop=True), X_test.reset_index(drop=True)
     y_train, y_test = y_train.reset_index(drop=True), y_test.reset_index(drop=True)
     
@@ -380,7 +385,3 @@ def review_models_pipe(
 if __name__ == "__main__": 
     pca_X_train, pca_X_test, y_train, y_test, pca_X, y = get_data_pipe(num_sample=40000)
     test = review_models_pipe(pca_X, np.ravel(y))
-    test
-
-
-# ### Load Data

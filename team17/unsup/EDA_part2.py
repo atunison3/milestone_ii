@@ -1,11 +1,13 @@
 # In this script we're going to look at the total distribution of charging times (in general), and how they vary based 
 # on different power levels, or SOC durations 
 
+import os
 import pandas as pd
-import EDA_part1
+
+from .EDA_part1 import prep_data, hist_plotter
 
     
-def combine_charging_data(input_condition: int = 2) -> pd.DataFrame:
+def combine_charging_data(input_condition: int = 2, assets_path: str = 'assets/') -> pd.DataFrame:
     """
     This function comnines data from the charging stations, charging connectors, and charging sessions
     INPUTS: 
@@ -16,14 +18,14 @@ def combine_charging_data(input_condition: int = 2) -> pd.DataFrame:
     """
     
     # Filepaths for the desired data 
-    filepath = r'data\\evwatts.public.session.csv'
-    station_file = r'data\\evwatts.public.evse.csv'
-    connector_file = r'data\\evwatts.public.connector.csv'
+    filepath = os.path.join(assets_path, 'evwatts.public.session.csv')
+    station_file = os.path.join(assets_path, 'evwatts.public.evse.csv')
+    connector_file = os.path.join(assets_path, 'evwatts.public.connector.csv')
 
     # Read and merge the dataframes of interest 
     df = pd.read_csv(filepath) 
     df["soc_charged"] = df["end_soc"] - df["start_soc"]  # Calculates total charge
-    df_redux = EDA_part1.prep_data(input_df=df, condition=input_condition)
+    df_redux = prep_data(input_df=df, condition=input_condition)
     df_stations =  pd.read_csv(station_file)
     df_connectors = pd.read_csv(connector_file)
 
@@ -76,7 +78,7 @@ def review_charging(
 
         #Plot results
         xlabel_text = "Charge Duration (minutes)"
-        EDA_part1.hist_plotter(plot_df["charge_duration"]*60, sample_size = num_samples, normalize=True,
+        hist_plotter(plot_df["charge_duration"]*60, sample_size = num_samples, normalize=True,
                                       xlabel=xlabel_text, title=title_text)
 
 

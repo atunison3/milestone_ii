@@ -21,14 +21,15 @@ import matplotlib.pyplot as plt
 import time 
 
 #Import python scripts
-import Unsupervised_Learning_V3
-import Unsupervised_Learning_Hyper_param
+from .Unsupervised_Learning_V3 import load_downsample, evaluate_pca, apply_PCA
+from .Unsupervised_Learning_Hyper_param import lof_sensitivity_analysis, IsoF_sensitivity_analysis
+from .Unsupervised_Learning_Hyper_param import hyper_parameter_plotting, evaluate_LOF, evaluate_ISF
 
 #Import pyscripts 
 
 
 def get_data_pipe2(
-    dropword: str = None, num_sample: int = 5000
+    path_to_results: str, dropword: str = None, num_sample: int = 5000
     ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]: 
     """This function serves as the data retrieval pipeline for unsupervised learning. It retrieves the scaled, 
     transformed datasets, then identifies optimal principal components for 95% variance retention, and finally 
@@ -42,7 +43,7 @@ def get_data_pipe2(
     to predictor features, y's to the target feature dataframe.
     """
 
-    X_train, X_test, y_train, y_test = Unsupervised_Learning_V3.load_downsample(num_sample)
+    X_train, X_test, y_train, y_test = load_downsample(path_to_results, num_sample)
     X_train, X_test = X_train.reset_index(drop=True), X_test.reset_index(drop=True)
     y_train, y_test = y_train.reset_index(drop=True), y_test.reset_index(drop=True)
     
@@ -59,17 +60,17 @@ def get_data_pipe2(
     X = X[temp_words] 
     
     # Find the optimal number of components for dimension reduction
-    optimal_n_components, pca_X = Unsupervised_Learning_V3.evaluate_pca(
+    optimal_n_components, pca_X = evaluate_pca(
         X_train, variance_retention=0.95, view_plot=True)
 
     # Apply PCA to the 
-    pca_X_train, pca_X_test, pca_X = Unsupervised_Learning_V3.apply_PCA(X_train, X_test, X, optimal_n_components)
+    pca_X_train, pca_X_test, pca_X = apply_PCA(X_train, X_test, X, optimal_n_components)
     
     return(pca_X_train, pca_X_test, y_train, y_test, pca_X, y)
 
 
 def hyper_parameter_pipe2(
-    dropword = None, num_sample: int = 1000
+    path_to_results: str, dropword = None, num_sample: int = 1000
     ) -> list[
         float, float, float, float, float, float, 
         pd.DataFrame, pd.DataFrame, 
@@ -78,7 +79,8 @@ def hyper_parameter_pipe2(
     '''Perform hyper parameter searching on multiple models'''
     
     #Get training data for hyper-param analysis
-    pca_X_train, pca_X_test, y_train, y_test, pca_X, y = get_data_pipe2(dropword = dropword, num_sample=num_sample)
+    pca_X_train, pca_X_test, y_train, y_test, pca_X, y = get_data_pipe2(
+        path_to_results, dropword = dropword, num_sample=num_sample)
 
     #Set LoF hyper params to grid-search evaluate
     neighbor_list = [5, 10, 15, 20, 30, 40]
@@ -94,27 +96,25 @@ def hyper_parameter_pipe2(
     start = time.time() 
 
     #run evaluation
-    df_lof = Unsupervised_Learning_Hyper_param.lof_sensitivity_analysis(pca_X_train, 
-                                                                        n_list = neighbor_list, 
-                                                                        algorithm = algorithm_list, 
-                                                                        leaf_size = leaf_list, 
-                                                                        p = p_list)
+    df_lof = lof_sensitivity_analysis(
+        pca_X_train, n_list = neighbor_list, 
+        algorithm = algorithm_list, leaf_size = leaf_list, 
+        p = p_list)
 
-    df_isoF = Unsupervised_Learning_Hyper_param.IsoF_sensitivity_analysis(pca_X_train, 
-                                                                          n_estim = n_estim_list,
-                                                                          contam_ratio = contam_ratio_list)
+    df_isoF = IsoF_sensitivity_analysis(
+        pca_X_train, n_estim = n_estim_list, contam_ratio = contam_ratio_list)
 
     #Sort by scores: 
     df_lof = df_lof.sort_values(by='rank_test_score', ascending=True).reset_index(drop=True)
     df_isoF = df_isoF.sort_values(by='rank_test_score', ascending=True).reset_index(drop=True)
         
     #plot results: 
-    LoF_plot = Unsupervised_Learning_Hyper_param.hyper_parameter_plotting(
+    LoF_plot = hyper_parameter_plotting(
         df_lof, model_type="LoF", col_x="param_leaf_size", col_y="param_n_neighbors", 
         col_z="rank_test_score", x_name = "Leaf Size", y_name = "Number of Neighbors", 
         z_name = "Score Rank", fig_rotation=140)
 
-    IsoF_plot = Unsupervised_Learning_Hyper_param.hyper_parameter_plotting(
+    IsoF_plot = hyper_parameter_plotting(
         df_isoF, model_type="IsoF", col_x="param_n_estimators", col_y="param_contamination", 
         col_z="rank_test_score", x_name = "Number of Estimators", y_name = "Contamination Ratio", 
         z_name = "Score Rank", fig_rotation=140)
@@ -125,27 +125,18 @@ def hyper_parameter_pipe2(
     n_neighbor = df_lof["param_n_neighbors"].iloc[0]
     p_var = df_lof["param_p"].iloc[0]
     
-    lof_precision, lof_recall, lof_F1 = Unsupervised_Learning_Hyper_param.evaluate_LOF(pca_X_train, 
-                                                     pca_X_test, 
-                                                     np.ravel(y_train), 
-                                                     np.ravel(y_test), 
-                                                     n_neighbor= n_neighbor, 
-                                                     n_leaf = n_leaf, 
-                                                     algorithm = algo, 
-                                                     p=p_var,
-                                                    )
+    lof_precision, lof_recall, lof_F1 = evaluate_LOF(
+        pca_X_train, pca_X_test, np.ravel(y_train), 
+        np.ravel(y_test), n_neighbor= n_neighbor, 
+        n_leaf = n_leaf, algorithm = algo, p=p_var)
     
     
     val_contam = df_isoF["param_contamination"].iloc[0]
     num_estimate = df_isoF["param_n_estimators"].iloc[0]
     
-    IsoF_precision, IsoFrecall, IsoF1 = Unsupervised_Learning_Hyper_param.evaluate_ISF(pca_X_train, 
-                                                     pca_X_test, 
-                                                     np.ravel(y_train), 
-                                                     np.ravel(y_test), 
-                                                     n_estimate= num_estimate, 
-                                                     contam_ratio = val_contam, 
-                                                     )
+    IsoF_precision, IsoFrecall, IsoF1 = evaluate_ISF(
+        pca_X_train, pca_X_test, np.ravel(y_train), np.ravel(y_test), 
+        n_estimate= num_estimate, contam_ratio = val_contam)
     
     outputs = [
         IsoF_precision, IsoFrecall, IsoF1, 
