@@ -306,6 +306,7 @@ if __name__=='__main__':
                     epochs=25,            
                     batch_size=32,
                     validation_split=0.2, 
+                    verbose=0, 
                     callbacks=[early_stop])
 
                 
