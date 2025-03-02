@@ -250,6 +250,7 @@ def get_paths(path_to_assets: str = None) -> tuple[Path, Path]:
     # Join path strings and create Paths
     sessions_path = Path(os.path.join(path_to_assets, 'evwatts.public.session.csv'))
     evse_path = Path(os.path.join(path_to_assets, 'evwatts.public.evse.csv')) 
+    connector_path = Path(os.path.join(path_to_assets, 'evwatts.public.connector.csv'))
 
-    return sessions_path, evse_path
+    return sessions_path, evse_path, connector_path
 

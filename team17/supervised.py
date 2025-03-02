@@ -26,13 +26,13 @@ if __name__=='__main__':
     warnings.filterwarnings("ignore")
 
     # Import more packages
-    # from sklearn.ensemble import RandomForestClassifier
-    # from sklearn.linear_model import LogisticRegression, LinearRegression
-    # from sklearn.linear_model import Lasso, Ridge, ElasticNet
-    # from sklearn.metrics import f1_score, accuracy_score, recall_score, precision_score
-    # from sklearn.metrics import mean_squared_error
-    # from sklearn.model_selection import KFold, cross_val_score
-    # from sklearn.neighbors import KNeighborsClassifier
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.linear_model import LogisticRegression, LinearRegression
+    from sklearn.linear_model import Lasso, Ridge, ElasticNet
+    from sklearn.metrics import f1_score, accuracy_score, recall_score, precision_score
+    from sklearn.metrics import mean_squared_error
+    from sklearn.model_selection import KFold, cross_val_score
+    from sklearn.neighbors import KNeighborsClassifier
     
     # Import packages from this project
     from team17.super.functions import DataCleaningFunctions, LoadData
@@ -53,21 +53,22 @@ if __name__=='__main__':
     parser.add_argument('--path_to_assets', default='assets')
     args = parser.parse_args()
 
+    print(args.path_to_assets)
 
+    print(f"\n\n{green_text}Beginning Loading of Data{reset_text}\n\n") 
     try:
-        print(f"\n\n{green_text}Beginning Loading of Data{reset_text}\n\n") 
         X_train = np.load(os.path.join(args.path_to_assets, 'X_train.npy'))
         y_train = np.load(os.path.join(args.path_to_assets, 'y_train.npy'))
         X_test = np.load(os.path.join(args.path_to_assets, 'X_test.npy'))
         y_test = np.load(os.path.join(args.path_to_assets, 'y_test.npy'))
 
     except FileNotFoundError:
-        print(f"\n\n{green_text}Beginning Loading of Data{reset_text}\n\n") 
+
         # Read in data
-        sessions_path, evse_path = get_paths(args.path_to_assets)
-        sessions = LoadData.load_sessions()
-        evse = LoadData.load_evse()
-        connector = LoadData.load_connector()
+        sessions_path, evse_path, connector_path = get_paths(args.path_to_assets)
+        sessions = LoadData.load_sessions(sessions_path)
+        evse = LoadData.load_evse(evse_path)
+        connector = LoadData.load_connector(connector_path)
 
         # Merge to one DataFrame
         df = LoadData.merge_data(sessions, evse, connector)
