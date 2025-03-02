@@ -8,7 +8,8 @@ from sklearn.model_selection import train_test_split
 #import relavent pyscripts: 
 import EDA_part2
 
-def transform_data(input_df, remove_cols, cat_cols, y_col): 
+def transform_data(
+    input_df: pd.DataFrame, remove_cols: list, cat_cols: list, y_col: str) -> pd.DataFrame: 
     """
     This function prepares the dataframe for model training by cleaning the dataframe, standardizing quantitative inputs, and one-
     Hot encoding the categorical data 
@@ -23,10 +24,10 @@ def transform_data(input_df, remove_cols, cat_cols, y_col):
     output_df: a pandas dataframe object that is scaled and one-hot encoded with the desired features 
     """
 
-    #first remove columns unwanted: 
+    # First remove columns unwanted: 
     temp_df = input_df.drop(columns=remove_cols)
     
-    #Make subset df that does not include the target column(s)
+    # Make subset df that does not include the target column(s)
     if isinstance(y_col, list):
         features_df = temp_df.drop(columns=y_col)
         target_df = temp_df[y_col]
@@ -34,33 +35,36 @@ def transform_data(input_df, remove_cols, cat_cols, y_col):
         features_df = temp_df.drop(columns=[y_col])
         target_df = temp_df[[y_col]]
 
-    #Find which columns are quantitative by deduction
+    # Find which columns are quantitative by deduction (assuming data is cat or num nor ordinal)
     all_cols = list(features_df.columns) 
     quant_cols = [col for col in all_cols if col not in cat_cols]
     
-    #set the encoder & scaler 
+    # Set the encoder & scaler 
     encoder = OneHotEncoder(sparse_output=False, drop=None) 
     scaler = StandardScaler() 
 
-    #Fit and transform the columns appropriately 
+    # Fit and transform the columns appropriately 
     scaled_columns = scaler.fit_transform(features_df[quant_cols]) #scale quant features only 
     encoded_columns = encoder.fit_transform(features_df[cat_cols]) #encode cat features only
 
-    #Now map back to a scaled, encoded dataframe: 
+    # Now map back to a scaled, encoded dataframe: 
     scaled_df = pd.DataFrame(scaled_columns, columns=quant_cols)
     encoded_df = pd.DataFrame(encoded_columns, columns=encoder.get_feature_names_out(cat_cols))
 
-    #Combine the processed data 
+    # Combine the processed data 
     scale_encoded_df = pd.concat([encoded_df, scaled_df], axis=1) 
 
-    #Now add the target variables (in case needed): 
+    # Now add the target variables (in case needed): 
     output_df =  pd.concat([scale_encoded_df, target_df], axis=1)
 
-    #return the preped_df: 
+    # return the preped_df: 
     return output_df
 
 
-def split_data(input_df, target_cols, test_ratio=0.2, val_ratio=0.25): 
+def split_data(
+    input_df: pd.DataFrame, target_cols: list | str, 
+    test_ratio: float = 0.2, val_ratio: float = 0.25
+    ) ->tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]: 
     """
     This function takes the input dataframe, and given the target columns, splits the data into a training, validation, and test dataset
     INPUTS: 
@@ -74,25 +78,26 @@ def split_data(input_df, target_cols, test_ratio=0.2, val_ratio=0.25):
     Y_train, y_val, and y_test:
     """
     
+    # Get the target data y
     if isinstance(target_cols, list):
-        y = input_df[target_cols]
+        y = input_df[target_cols]  
     else: 
-        y = input_df[[target_cols]]
+        y = input_df[[target_cols]] # Maintains dataframe type
 
-    #Split_data between predictor and regressor: 
+    # Split_data between predictor and regressor: 
     X = input_df.drop(columns=target_cols) 
     
-    #Separate test data from train/val set: 
+    # Separate test data from train/val set: 
     X_train_val, X_test, y_train_val, y_test = train_test_split(X,y, test_size=test_ratio, random_state=42)
 
-    #Separate training and validation data: 
+    # Separate training and validation data: 
     X_train, X_val, y_train, y_val = train_test_split(X_train_val, y_train_val, test_size=val_ratio, random_state = 42) 
 
-    #return the train, val, & test datasets
+    # Return the train, val, & test datasets
     return X_train, X_val, X_test, y_train, y_val, y_test
 
 
-def process_datetime(input_df): 
+def process_datetime(input_df: pd.DataFrame) -> pd.DataFrame: 
     """
     Takes an input_dataframe for the charging events and parses the datetime column to extract the characteristic information from it
     such as day, month, year, day of the week, day of the year, hour, etc. 
@@ -115,16 +120,11 @@ def process_datetime(input_df):
     input_df["time_of_day"] = input_df["hour"] + input_df["minute"]/60 + input_df["second"]/3600
     input_df["weekday"] = input_df["start_datetime"].dt.weekday.astype(int)
     input_df["day_of_year"] = input_df["start_datetime"].dt.dayofyear.astype(int)
-
-    #Now convert each of these to numeric rather than datetime: 
     
-    
-    out_df = input_df
-    
-    return out_df 
+    return input_df 
 
 
-def anomaly_tags(input_df, anomaly_list=None): 
+def anomaly_tags(input_df: pd.DataFrame, anomaly_list: list = None) -> pd.DataFrame: 
     """
     Converts entries from the input_df's "flag_id" column to 0 or 1 based on anomaly prescence 
 
@@ -140,13 +140,14 @@ def anomaly_tags(input_df, anomaly_list=None):
         input_df["flag_id"] = input_df["flag_id"].map(lambda x: 1 if x != 0 else 0)
     else: 
         input_df["flag_id"] = input_df["flag_id"].map(lambda x: 1 if x in anomaly_list else 0)
-
-    out_df = input_df
     
-    return out_df
+    return input_df
 
 
-def get_SL_data(input_condition=2, test_ratio=0.2, val_ratio=0.25, anomaly_list=None): 
+def get_SL_data(
+    input_condition: int = 2, test_ratio: float = 0.2, 
+    val_ratio: float = 0.25, anomaly_list: list = None
+    ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]: 
     """
     This function prepares the data into train, val, and test datasets for supervised learning
     INPUTS: 
@@ -160,12 +161,12 @@ def get_SL_data(input_condition=2, test_ratio=0.2, val_ratio=0.25, anomaly_list=
     X_train, X_val, and X_test: 
     Y_train, y_val, and y_test:    
     """
-    #Get the dataframe processed
+    # Get the dataframe processed
     merged_df = EDA_part2.combine_charging_data(input_condition=input_condition)
     merged_time_df = process_datetime(merged_df)
     mapped_df = anomaly_tags(merged_time_df, anomaly_list=anomaly_list)
     
-    #Declare the target, categorical, and unwanted columns: 
+    # Declare the target, categorical, and unwanted columns: 
     y_col = "flag_id"
     cat_cols = ["power_kw", "connector_type", "pricing", "region", "land_use", "metro_area", "charge_level", "venue"]
     remove_cols = ["session_id", "connector_id_x", "evse_id", "connector_id_y", "start_datetime", "end_datetime",
@@ -182,7 +183,10 @@ def get_SL_data(input_condition=2, test_ratio=0.2, val_ratio=0.25, anomaly_list=
     return (X_train, X_val, X_test, y_train, y_val, y_test)
 
 
-def get_UL_data(input_condition=2, test_ratio=0.2, val_ratio=0.25, anomaly_list=None): 
+def get_UL_data(
+    input_condition: int = 2, test_ratio: float = 0.2, 
+    val_ratio: float = 0.25, anomaly_list: list = None
+    ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]: 
     """
     This function prepares the data into train, val, and test datasets for unsupervised learning
     INPUTS: 
@@ -211,7 +215,7 @@ def get_UL_data(input_condition=2, test_ratio=0.2, val_ratio=0.25, anomaly_list=
     transformed_df = transform_data(mapped_df, remove_cols=remove_cols, cat_cols=cat_cols, y_col=y_col).dropna()
     
     y = transformed_df[[y_col]]
-    X = transformed_df.drop(columns=y_col) 
+    #X = transformed_df.drop(columns=y_col) 
     
     #Separate test data from train/test set: 
     X_train = transformed_df[transformed_df["flag_id"]==0].drop(columns=y_col)
@@ -224,5 +228,4 @@ def get_UL_data(input_condition=2, test_ratio=0.2, val_ratio=0.25, anomaly_list=
 
 
 if __name__ == "__main__":
-    #X_train, X_val, X_test, y_train, y_val, y_test = get_SL_data()
     X_train, X_test, X_anomalies, y_train, y_test = get_UL_data()

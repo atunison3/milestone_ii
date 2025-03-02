@@ -8,31 +8,39 @@
 
 #Import general packages
 import time
-import os 
 import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+# from mpl_toolkits.mplot3d import Axes3D
 from scipy.interpolate import griddata
+from typing import Self
 
 #model options: 
-from sklearn.decomposition import PCA
 from sklearn.ensemble import IsolationForest
-from sklearn.svm import OneClassSVM #very slow
 from sklearn.neighbors import LocalOutlierFactor
 
 #model eval packages
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import make_scorer
-from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics import calinski_harabasz_score
-from sklearn.neighbors import LocalOutlierFactor
 
 #Import pyscripts 
 import Unsupervised_Learning_V3
 
+class Timer:
+    def __init__(self):
+        self.start_time = time.time() 
 
-def evaluate_ISF(X_train, X_test, y_train, y_test, n_estimate=50, contam_ratio=0.2): 
+    def stop(self):
+        self.end = time.time()
+        self.duration = np.round((self.end - self.start) / 60, 1)
+        print(f"LOF Evaluation Finished in: {self.duration} min")
+
+
+def evaluate_ISF(
+    X_train: pd.DataFrame, X_test: pd.DataFrame, 
+    y_train: pd.DataFrame, y_test: pd.DataFrame, 
+    n_estimate: int = 50, contam_ratio: float = 0.2
+    ) -> tuple[float, float, float]: 
     """
     This function builds an isolation forest model, based on the specified 
     training data, anomaly data, and number of samples. 
@@ -51,15 +59,15 @@ def evaluate_ISF(X_train, X_test, y_train, y_test, n_estimate=50, contam_ratio=0
     
     start = time.time()
     
-    #Setup the model: 
-    ISF = IsolationForest(n_estimators=n_estimate,contamination = contam_ratio)
+    # Setup the model: 
+    isf = IsolationForest(n_estimators = n_estimate, contamination = contam_ratio)
 
-    #Fit to the non-anomalous data
-    ISF.fit(X_train)
+    # Fit to the non-anomalous data
+    isf.fit(X_train)
 
-    #Score performance               
-    pred_train = ISF.predict(X_train)
-    pred_test = ISF.predict(X_test)
+    # Score performance               
+    # pred_train = isf.predict(X_train)
+    pred_test = isf.predict(X_test)
 
     precision, recall, F1 = get_scores(pred_test, y_test)
 
@@ -70,26 +78,33 @@ def evaluate_ISF(X_train, X_test, y_train, y_test, n_estimate=50, contam_ratio=0
     return precision, recall, F1 
 
 
-def evaluate_LOF(X_train, X_test, y_train, y_test, n_neighbor= 5, n_leaf = 20, algorithm = "ball tree", p=1):
+def evaluate_LOF(
+    X_train: pd.DataFrame, X_test: pd.DataFrame, 
+    y_train: pd.DataFrame, y_test: pd.DataFrame, 
+    n_neighbor: int = 5, n_leaf: int = 20,
+    algorithm: str = "ball tree", p: int = 1
+    ) -> tuple[float, float, float]:
+    '''Perform local outlier factor evaluation'''
+
     start = time.time()
     
     # Initialize and fit Local Outlier Factor model
-    lof = LocalOutlierFactor(novelty=True,
-                             n_neighbors=n_neighbor,
-                             leaf_size=n_leaf,
-                             algorithm=algorithm,
-                             p=p,
-                             )
-    
+    lof = LocalOutlierFactor(
+        novelty=True,
+        n_neighbors=n_neighbor,
+        leaf_size=n_leaf,
+        algorithm=algorithm,
+        p=p)
     lof.fit(X_train)
     
     # Predict on the training set and anomalies
-    pred_train = lof.predict(X_train)
+    #pred_train = lof.predict(X_train)
     pred_test = lof.predict(X_test)
 
     # Get performance
     precision, recall, F1 = get_scores(pred_test, y_test)
     
+    # Print 
     end = time.time()
     duration = np.round((end - start) / 60, 1)
     print(f"LOF Evaluation Finished in: {duration} min")
@@ -97,12 +112,17 @@ def evaluate_LOF(X_train, X_test, y_train, y_test, n_neighbor= 5, n_leaf = 20, a
     return precision, recall, F1 
 
 
-def get_scores(input_prediction, input_data): 
+def get_scores(
+    input_prediction: np.array, input_data: np.array
+    ) -> tuple[float, float, float]: 
+    '''Calculate scores based on predictions and truths'''
+
+    # Calculate true/false positives/negatives
     TP = np.sum((input_prediction == 1) & (input_data == 1))
-    TN = np.sum((input_prediction == 0) & (input_data == 0))
     FP = np.sum((input_prediction == 1) & (input_data == 0))
     FN = np.sum((input_prediction == 0) & (input_data == 1))   
 
+    # Calculate scores
     precision = TP / (TP + FP)
     recall = TP / (TP + FN)
     F1 = 2 * precision * recall / (precision + recall)  
@@ -110,10 +130,13 @@ def get_scores(input_prediction, input_data):
     return precision, recall, F1
     
 
-def lof_sensitivity_analysis(input_training_data, n_list = [5, 10, 20, 40], 
-                             algorithm = ['ball_tree', 'kd_tree', 'brute'], 
-                             leaf_size = [10, 30, 50],
-                             p = [1,2]):
+def lof_sensitivity_analysis(
+    input_training_data: pd.DataFrame, 
+    n_list: list[int] = [5, 10, 20, 40], 
+    algorithm: list[str] = ['ball_tree', 'kd_tree', 'brute'], 
+    leaf_size: list[int] = [10, 30, 50],
+    p: list[int] = [1,2]
+    ) -> pd.DataFrame:
     
     """
     grid-search hyper-param tuning & sensitivty analysis for LoF model 
@@ -132,10 +155,13 @@ def lof_sensitivity_analysis(input_training_data, n_list = [5, 10, 20, 40],
     class LOF_grid_search(LocalOutlierFactor):
         """This class is used for hyper-parameter tuning of the LoF model for cluster analysis
         """
-        def __init__(self, n_neighbors=20, algorithm='auto', leaf_size=30, metric='minkowski', p=2):
+        def __init__(
+            self, n_neighbors: int = 20, 
+            algorithm: str = 'auto', leaf_size: int = 30, 
+            metric: str = 'minkowski', p: int = 2):
             super().__init__(n_neighbors=n_neighbors, algorithm=algorithm, leaf_size=leaf_size, metric=metric, p=p)
     
-        def fit(self, X, y=None):
+        def fit(self, X: pd.DataFrame, y: pd.DataFrame = None) -> Self:
             self.model = LocalOutlierFactor(
                 n_neighbors=self.n_neighbors,
                 algorithm=self.algorithm,
@@ -143,14 +169,21 @@ def lof_sensitivity_analysis(input_training_data, n_list = [5, 10, 20, 40],
                 metric=self.metric,
                 p=self.p
             )
+
+            # Fit the model
             self.model.fit(X)
+
             return self
     
-        def score(self, X, y=None):
+        def score(self, X: pd.DataFrame, y: pd.DataFrame = None) -> float:
+            '''Calculates the Calinski Harabasz score of the model'''
+
+            # Predict 
             y_pred = self.model.fit_predict(X)
+
             return calinski_harabasz_score(X, y_pred)
     
-    
+    # Set up param grid
     param_grid = {
         'n_neighbors': n_list,
         'algorithm': algorithm,
@@ -158,23 +191,29 @@ def lof_sensitivity_analysis(input_training_data, n_list = [5, 10, 20, 40],
         'p': p  # Fixed parameter values to avoid 'p'
     }
     
+    # Start a timer
     start = time.time()
+
+    # Perform grid search
     LOF_grid_search = LOF_grid_search()
-    
     grid_search = GridSearchCV(estimator=LOF_grid_search, param_grid=param_grid, cv=5)
     grid_search.fit(input_training_data)
     
+    # Save results to a dataframe
     results = pd.DataFrame(grid_search.cv_results_)
     
-    #clock performance & return results 
+    # Clock performance & return results 
     end = time.time() 
-    print(f"Sensitivity Analysis Finished in {np.round((end - start)/60,1)} minutes")
+    print(f"Sensitivity Analysis Finished in {np.round((end - start)/60, 1)} minutes")
+
     return results
 
 
-def IsoF_sensitivity_analysis(input_training_data, n_estim = [5, 10, 20, 40], 
-                             contam_ratio = [0.02, 0.05, 0.1, 0.15],
-                             ):
+def IsoF_sensitivity_analysis(
+    input_training_data: pd.DataFrame, 
+    n_estim: list[int] = [5, 10, 20, 40], 
+    contam_ratio: list[int] = [0.02, 0.05, 0.1, 0.15]
+    ) -> pd.DataFrame:
     
     """
     grid-search hyper-param tuning & sensitivty analysis for LoF model 
@@ -192,42 +231,62 @@ def IsoF_sensitivity_analysis(input_training_data, n_estim = [5, 10, 20, 40],
     class IsoF_grid_search(IsolationForest):
         """This class is used for hyper-parameter tuning of the IsoF model for cluster analysis
         """
-        def __init__(self, n_estimators=100, max_samples='auto', contamination='auto', max_features=1.0, bootstrap=False):
+        def __init__(
+            self, n_estimators: int = 100, max_samples: str = 'auto', 
+            contamination: str = 'auto', max_features: float = 1.0, bootstrap: bool = False):
             super().__init__(n_estimators=n_estimators,contamination=contamination)
         
-        def fit(self, X, y=None):
+        def fit(self, X: pd.DataFrame, y: list = None) -> Self:
+            '''Creates a fits a model'''
+
+            # Initialize model
             self.model = IsolationForest(
                 n_estimators = self.n_estimators,
                 contamination=self.contamination,
             )
+
+            # Fit the model
             self.model.fit(X)
+
             return self
         
-        def score(self, X, y=None):
+        def score(self, X: pd.DataFrame, y: pd.DataFrame = None) -> float:
+            '''Returns the Calinski Harabasz score'''
+
+            # Predict
             y_pred = self.model.fit_predict(X)
+
             return calinski_harabasz_score(X, y_pred)
 
-    
+    # Set up param gird
     param_grid = {
         'n_estimators': n_estim,
         'contamination': contam_ratio,
     }
     
+    # Start a timer
     start = time.time()
+
+    # Perform grid search
     IsoF_grid_search = IsoF_grid_search()
-    
     grid_search = GridSearchCV(estimator=IsoF_grid_search, param_grid=param_grid, cv=5)
     grid_search.fit(input_training_data)
     
+    # Save results in dataframe
     results = pd.DataFrame(grid_search.cv_results_)
     
-    #clock performance & return results 
+    # Clock performance & return results 
     end = time.time() 
     print(f"Sensitivity Analysis Finished in {np.round((end - start)/60,1)} minutes")
+
     return results        
     
 
-def hyper_parameter_plotting(input_df, model_type, col_x, col_y, col_z, x_name=None, y_name=None, z_name =None, fig_rotation=140): 
+def hyper_parameter_plotting(
+    input_df: pd.DataFrame, model_type: str, 
+    col_x: list[str], col_y: list[str], col_z: list[str], 
+    x_name: str = None, y_name: str = None, z_name: str = None, 
+    fig_rotation: float = 140) -> None: 
     """This function creates a 3D plot showing the sensitivty analysis for a model score against two hyper parameters
     INPUTS: 
     input_df: a pandas dataframe for ploting score vs. hyper params
@@ -243,35 +302,37 @@ def hyper_parameter_plotting(input_df, model_type, col_x, col_y, col_z, x_name=N
     OUTPUTS: none. A plt 3d plot is displayed 
     """
     
-    
-    X = input_df[col_x]
-    Y = input_df[col_y]
-    Z = input_df[col_z]
+    # Extract x, y, z data
+    x = input_df[col_x]
+    y = input_df[col_y]
+    z = input_df[col_z]
 
-    if x_name == None: 
+    if not x_name: 
         x_name = col_x
-    if y_name == None: 
+    if not y_name: 
         y_name = col_y
-    if z_name == None: 
+    if not z_name: 
         z_name = col_z
     
-    #Grid for plot contours: 
-    xi = np.linspace(X.min(), X.max(), 100)
-    yi = np.linspace(Y.min(), Y.max(), 100)
+    # Grid for plot contours: 
+    xi = np.linspace(x.min(), x.max(), 100)
+    yi = np.linspace(y.min(), y.max(), 100)
     xi, yi = np.meshgrid(xi, yi)
-    zi = griddata((X, Y), Z, (xi, yi), method='linear')
+    zi = griddata((x, y), z, (xi, yi), method='linear')
     
+    # Create figure
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     
-    norm = plt.Normalize(Z.min(), Z.max())
-    colors = plt.cm.RdYlGn(norm(Z))  # Using the 'RdYlGn' colormap
+    # Normalize 
+    norm = plt.Normalize(z.min(), z.max())
+    colors = plt.cm.RdYlGn(norm(z))  # Using the 'RdYlGn' colormap
     
-    #surface map: 
-    surface = ax.plot_surface(xi, yi, zi, cmap='RdYlGn', alpha=0.8)
+    # Surface map: 
+    _ = ax.plot_surface(xi, yi, zi, cmap='RdYlGn', alpha=0.8)
     
     # Create scatter plot
-    scatter = ax.scatter(X, Y, Z, c=colors, marker='o')
+    _ = ax.scatter(x, y, z, c=colors, marker='o')
     
     # Setting labels
     ax.set_xlabel(x_name)
@@ -281,9 +342,11 @@ def hyper_parameter_plotting(input_df, model_type, col_x, col_y, col_z, x_name=N
     
     ax.view_init(elev=30, azim=fig_rotation)  # Adjust these values to change the angle
     
-    plot_subtext = (f"{x_name} ranges from {X.min()} - {X.max()}, while {y_name} varies from {Y.min()} - {Y.max()}.\
-    Ranking is based on the calinski-harabaz score from a 5-fold, cross-validation of a hyper-\nparameter sweep of the {model_type}-\
-    based model. Other hyper-parameters, while explored, are not shown.") 
+    plot_subtext = f"{x_name} ranges from {x.min()} - {x.max()}, while {y_name} varies from {y.min()} - {y.max()}."
+    plot_subtext += "Ranking is based on the calinski-harabaz score from a 5-fold, cross-validation of a hyper-\n"
+    plot_subtext += f"parameter sweep of the {model_type}-\based model. Other hyper-parameters,"
+    plot_subtext += " while explored, are not shown." 
+    plot_subtext = (plot_subtext)
     
     plt.figtext(
         0.15, -0.07, plot_subtext, wrap=True, horizontalalignment='left', fontsize=9, fontstyle='italic',
@@ -292,44 +355,48 @@ def hyper_parameter_plotting(input_df, model_type, col_x, col_y, col_z, x_name=N
     plt.show()
 
 
-def hyper_parameter_pipe(num_sample=1000):
+def hyper_parameter_pipe(num_sample: int = 1000) -> list:
+    '''Perform hyper parameter pipeline'''
     
-    #Get training data for hyper-param analysis
+    # Get training data for hyper-param analysis
     pca_X_train, pca_X_test, y_train, y_test, pca_X, y = Unsupervised_Learning_V3.get_data_pipe(num_sample=num_sample)
 
-    #Set LoF hyper params to grid-search evaluate
+    # Set LoF hyper params to grid-search evaluate
     neighbor_list = [5, 10, 15, 20, 30, 40]
     algorithm_list = ['ball_tree']
     leaf_list = [5, 10, 15, 20, 30, 40]
     p_list = [1]
 
-    #Set IsoF hyper params to grid-search evaluate
+    # Set IsoF hyper params to grid-search evaluate
     n_estim_list = [5, 10, 20, 40]
     contam_ratio_list = [0.02, 0.05, 0.1, 0.15]
     
-    #start clock (to help with HPC timing)
-    start = time.time() 
+    # Start clock (to help with HPC timing)
+    timer = Timer()
 
-    #run evaluation
+    # Run evaluation
     df_lof = lof_sensitivity_analysis(pca_X_train, n_list = neighbor_list, algorithm = algorithm_list, 
                                               leaf_size = leaf_list, p = p_list)
 
     df_isoF = IsoF_sensitivity_analysis(pca_X_train, n_estim = n_estim_list, contam_ratio = contam_ratio_list)
 
-    #Sort by scores: 
+    # Sort by scores: 
     df_lof = df_lof.sort_values(by='rank_test_score', ascending=True).reset_index(drop=True)
     df_isoF = df_isoF.sort_values(by='rank_test_score', ascending=True).reset_index(drop=True)
         
-    #plot results: 
-    LoF_plot = hyper_parameter_plotting(df_lof, model_type="LoF", col_x="param_leaf_size", col_y="param_n_neighbors", 
-                             col_z="rank_test_score", x_name = "Leaf Size", y_name = "Number of Neighbors", 
-                             z_name = "Score Rank", fig_rotation=140)
+    # Plot results: 
+    LoF_plot = hyper_parameter_plotting(
+        df_lof, model_type="LoF", col_x="param_leaf_size", 
+        col_y="param_n_neighbors", col_z="rank_test_score", x_name = "Leaf Size", 
+        y_name = "Number of Neighbors", z_name = "Score Rank", fig_rotation=140)
 
-    IsoF_plot = hyper_parameter_plotting(df_isoF, model_type="IsoF", col_x="param_n_estimators", col_y="param_contamination", 
-                             col_z="rank_test_score", x_name = "Number of Estimators", y_name = "Contamination Ratio", 
-                             z_name = "Score Rank", fig_rotation=140)
+    IsoF_plot = hyper_parameter_plotting(
+        df_isoF, model_type="IsoF", col_x="param_n_estimators", 
+        col_y="param_contamination", col_z="rank_test_score", 
+        x_name = "Number of Estimators", y_name = "Contamination Ratio", 
+        z_name = "Score Rank", fig_rotation=140)
 
-    #Now score the model for anomaly identification: 
+    # Now score the model for anomaly identification: 
     algo = df_lof["param_algorithm"].iloc[0]
     n_leaf = df_lof["param_leaf_size"].iloc[0]
     n_neighbor = df_lof["param_n_neighbors"].iloc[0]
@@ -357,14 +424,21 @@ def hyper_parameter_pipe(num_sample=1000):
                                                      contam_ratio = val_contam, 
                                                      )
     
-    outputs = [IsoF_precision, IsoFrecall, IsoF1, lof_precision, lof_recall, lof_F1, df_lof, df_isoF, LoF_plot, IsoF_plot,
-               pca_X_train, pca_X_test, y_train, y_test, pca_X, y]
+    outputs = [
+        IsoF_precision, IsoFrecall, IsoF1, 
+        lof_precision, lof_recall, lof_F1, 
+        df_lof, df_isoF, 
+        LoF_plot, IsoF_plot, 
+        pca_X_train, pca_X_test, y_train, y_test, pca_X, y]
+
+    # Stop the timer
+    timer.end()
 
     return outputs
 
 
 if __name__ == "__main__": 
     results = hyper_parameter_pipe(num_sample=2000)
-    IsoF_precision, IsoFrecall, IsoF1, lof_precision, lof_recall, lof_F1, df_lof, df_isoF, LoF_plot, IsoF_plot,pca_X_train, pca_X_test, y_train, y_test, pca_X, y = results
+    IsoF_precision, IsoFrecall, IsoF1, lof_precision, lof_recall, lof_F1, df_lof, df_isoF, LoF_plot, IsoF_plot,pca_X_train, pca_X_test, y_train, y_test, pca_X, y = results  # noqa: E501
 
 

@@ -7,8 +7,13 @@ from scipy.stats import gaussian_kde
 import matplotlib.ticker as mtick
 
 
-def violin_plotter(input_df, cols, sample_size = 10000, normalize=True, colors=None, alt_names=None, title=None):
-    """This function creates a violin to describe the features found in a dataframe to support exploratory data analysis.
+def violin_plotter(
+    input_df: pd.DataFrame, cols: list[str], sample_size: int = 10000, 
+    normalize: bool = True, colors: list[str] = None, 
+    alt_names: list[str] = None, title: str = None) -> None:
+    """This function creates a violin to describe the features found in a dataframe to support 
+    exploratory data analysis.
+    
     INPUTS
     input_df (required): the pandas dataframe object that the user wishes to generate boxplots for 
     cols (required): a list of column names that the user seeks to include in the boxplot 
@@ -21,9 +26,10 @@ def violin_plotter(input_df, cols, sample_size = 10000, normalize=True, colors=N
     OUTPUTS
     output_plot: a plt plot rendering of the data provided
     """
+    # Create a temporary df
     temp_df = input_df[cols].sample(sample_size) 
     
-    if normalize == True: 
+    if normalize: 
         plot_df = (temp_df - temp_df.min()) / (temp_df.max() - temp_df.min())
     
         out_plot = plt.violinplot(plot_df, showmeans=True, showmedians=True, showextrema=False)
@@ -51,7 +57,7 @@ def violin_plotter(input_df, cols, sample_size = 10000, normalize=True, colors=N
         median_line = Line2D([0], [0], color='g', lw=2, label="Median") 
     
         #set the legend space dynamic for normalized or non-normalized scaling
-        if normalize==True: 
+        if normalize: 
             xmax = 1
             ymax = 1 
     
@@ -80,7 +86,7 @@ def violin_plotter(input_df, cols, sample_size = 10000, normalize=True, colors=N
                 out_plot = axes[i].violinplot(column_data, showmeans=True, showmedians=True)
     
                 # Extract mean coordinates
-                mean_coords = [[plot.vertices[:,0].mean(),plot.vertices[0,1]] for plot in out_plot['cmeans'].get_paths()]
+                mean_coords = [[p.vertices[:,0].mean(), p.vertices[0,1]] for p in out_plot['cmeans'].get_paths()]
                 mean_coords = np.array(mean_coords)
     
                 # Plot the mean values as purple triangles
@@ -100,7 +106,10 @@ def violin_plotter(input_df, cols, sample_size = 10000, normalize=True, colors=N
                 out_plot['cmedians'].set_color('g')
                             
                 # Add a legend for the mean and median
-                mean_line = Line2D([0], [0], color='k', lw=2, label="Mean", marker='d', markerfacecolor='k', markersize=8)
+                mean_line = Line2D(
+                    [0], [0], color='k', 
+                    lw=2, label="Mean", marker='d', 
+                    markerfacecolor='k', markersize=8)
                 median_line = Line2D([0], [0], color='g', lw=2, label="Median") 
                 
                 #dynamically set the ylabels 
@@ -123,8 +132,13 @@ def violin_plotter(input_df, cols, sample_size = 10000, normalize=True, colors=N
     return
     
 
-def box_plotter(input_df, cols, sample_size = 10000, normalize=True, colors=None, alt_names=None, title=None):
-    """This function creates a boxplot to describe the features found in a dataframe to support exploratory data analysis.
+def box_plotter(
+    input_df: pd.DataFrame, cols: list[str], 
+    sample_size: int = 10000, normalize: bool = True, 
+    colors: list[str] = None, alt_names: list[str] = None, 
+    title: str = None) -> None:
+    """This function creates a boxplot to describe the features found in a dataframe to 
+    support exploratory data analysis.
     
     INPUTS
     input_df (required): the pandas dataframe object that the user wishes to generate boxplots for 
@@ -140,7 +154,7 @@ def box_plotter(input_df, cols, sample_size = 10000, normalize=True, colors=None
     """
     temp_df = input_df[cols].sample(sample_size) 
     
-    if normalize == True: 
+    if normalize: 
         #Normalize the data and plot a single figure result
         plot_df = (temp_df - temp_df.min()) / (temp_df.max() - temp_df.min())
 
@@ -200,7 +214,10 @@ def box_plotter(input_df, cols, sample_size = 10000, normalize=True, colors=None
     
                 # Create boxplot for the column data
                 out_plot = axes[i].boxplot(column_data, showmeans=True, showfliers=False,
-                                           meanprops={"marker": "o", "markerfacecolor": "none", "markeredgecolor": "none"},
+                                           meanprops={
+                                            "marker": "o", 
+                                            "markerfacecolor": "none", 
+                                            "markeredgecolor": "none"},
                                            medianprops={"color": "green", "linewidth": 2})
     
                 # Extract mean coordinates
@@ -221,7 +238,10 @@ def box_plotter(input_df, cols, sample_size = 10000, normalize=True, colors=None
                 axes[i].spines["left"].set_color("black")
     
                 # Add a legend for the mean and median
-                mean_line = Line2D([0], [0], color="k", lw=0, label="Mean", marker="^", markerfacecolor="purple", markersize=8)
+                mean_line = Line2D(
+                    [0], [0], color="k", lw=0, 
+                    label="Mean", marker="^", markerfacecolor="purple", markersize=8
+                    )
                 median_line = Line2D([0], [0], color="g", lw=2, label="Median")
 
                 #dynamically set the ylabels 
@@ -280,7 +300,10 @@ def prep_data(input_df, condition):
     return out_df 
 
 
-def hist_plotter(input_ser, sample_size, normalize=False, exclude_outliers=True, title=None, xlabel=None): 
+def hist_plotter(
+    input_ser: pd.Series, sample_size: int, normalize: bool = False, 
+    exclude_outliers: bool = True, title: str = None, xlabel: str = None
+    ) -> None: 
     """This function creates a histogram for the single series feature provided by the user
     INPUTS: 
     input_ser: a pandas series object with quantitative data
@@ -295,38 +318,38 @@ def hist_plotter(input_ser, sample_size, normalize=False, exclude_outliers=True,
     """
 
     if sample_size < len(input_ser): 
+        # Gets a sample if input_ser is long enough
         input_ser = input_ser.sample(sample_size)
     
-    if normalize == True: 
+    if normalize: 
         density_tag = True
         y_label = "Probability Density" 
         hist_label = "Normalized Histogram"
-
     else: 
         density_tag = False
         y_label ="Count in Bin"
         hist_label = "Histogram"
 
 
-    if exclude_outliers == True:
+    if exclude_outliers:
         #Apply IQR analysis to determine outliers
         Q1 = np.percentile(input_ser, 25)
         Q3 = np.percentile(input_ser, 75) 
         IQR = Q3 - Q1 
-        LB = Q1 - 1.5*IQR 
-        UB = Q3 + 1.5*IQR
+        LB = Q1 - 1.5 * IQR 
+        UB = Q3 + 1.5 * IQR
 
         input_ser = input_ser[(input_ser >= LB) & (input_ser <= UB)]
 
-    #apply Freedman-Diaconis' Rule to find Appropriate bin-qty: 
+    # Apply Freedman-Diaconis' Rule to find Appropriate bin-qty: 
     h = 2 * IQR * (len(input_ser))**(-1/3)
     num_bins = int(round((input_ser.max() - input_ser.min()) / h, 0))
     
-    #Add PDF: 
+    # Add PDF: 
     kde = gaussian_kde(input_ser)
     x_values = np.linspace(input_ser.min(), input_ser.max(), 1000)
 
-    #Calculate CDF: 
+    # Calculate CDF: 
     cdf_values = np.cumsum(kde(x_values)) * (x_values[1] - x_values[0])
 
     
@@ -357,19 +380,19 @@ def hist_plotter(input_ser, sample_size, normalize=False, exclude_outliers=True,
     ax2.text(x_values.max(), y_max*0.8, f"50% Finish Charging\nin {round(time_50,1)} min.", 
              ha='right', va='top', color='green', fontsize=12)
     
-    #Set legend
+    # Set legend
     handles, labels = ax1.get_legend_handles_labels()
     handles2, labels2 = ax2.get_legend_handles_labels()
     handles.extend(handles2)
     labels.extend(labels2)    
 
-    #Set title & legend
+    # Set title & legend
     plt.title(title,fontweight='bold', fontsize=14)
     plt.legend(handles, labels, loc='center right')
     plt.show()
 
 
-def create_desired_plots(input_df): 
+def create_desired_plots(input_df: pd.DataFrame) -> None: 
     """
     This function creates 4 figures that are useful for exploratory data analysis of the EV public charging dataset
     Fig 1. Shows the normalized distribution of charging metrics, including faulty charging events
@@ -381,39 +404,44 @@ def create_desired_plots(input_df):
     """
     
 
-    #Specify list of features desired for plotting
+    # Specify list of features desired for plotting
     features = ["total_duration", "charge_duration", "energy_kwh", "start_soc", "end_soc", "soc_charged"]
-    names = ["Total Occupied Time (min)", "Charge Duration (min)", "Energy Charged (kWh)", "Start SOC (%)", "End SOC (%)", "SOC Charged (%)"]
+    names = [
+        "Total Occupied Time (min)", "Charge Duration (min)", 
+        "Energy Charged (kWh)", "Start SOC (%)", "End SOC (%)", "SOC Charged (%)"
+        ]
     plot_titles = ["Fig 1. Normalized Charging Metric Distributions: Including Anomalies", 
                    "Fig 2. Normalized Charging Metric Distributions: Excluding Anomalies", 
                    "Fig 3. Normalized Boxplot of Charging Metrics: Excluding Anomalies",
                    "Fig 4. Detailed Charging Metric Distributions: Non-Normalized and Excluding Anomalies",
                   ]
 
-    #prep the dataframes
+    # Prep the dataframes
     df_w_faults = prep_data(input_df, 1)
     df_no_faults = prep_data(input_df, 2)
 
-    #plot the figures:
+    # Plot the figures:
     violin_plotter(df_w_faults, cols=features, normalize=True, colors=None, alt_names=names, title=plot_titles[0])
     violin_plotter(df_no_faults, cols=features, normalize=True, colors=None, alt_names=names, title=plot_titles[1])
     box_plotter(df_no_faults, cols=features, normalize=True, colors=None, alt_names=names, title=plot_titles[2])
-    violin_plotter(df_no_faults, cols=features, normalize=False, colors=None, alt_names=names, title=plot_titles[3])     
+    violin_plotter(
+        df_no_faults, cols=features, 
+        normalize=False, colors=None, 
+        alt_names=names, title=plot_titles[3])     
     hist_plotter(df_no_faults["charge_duration"]*60, sample_size = 10000, normalize=True, 
                  xlabel="Charge Duration - minutes", 
                  title="Fig 5. Total charge duration (minutes) Distribution"
                  )
 
 
-def show_EDA1_results():
+def show_EDA1_results(filepath: str) -> None:
     """This function runs the desired process to create the desired violin and histogram plots"""
     
-    #read the data
-    filepath = r'data\\evwatts.public.session.csv'
+    # Read the data
     df = pd.read_csv(filepath) #Read file
     df["soc_charged"] = df["end_soc"] - df["start_soc"]  #calculate the SOC charged during event
     
-    #create violin and box plots
+    # Create violin and box plots
     create_desired_plots(df) #create desired plots
 
 #Execution: 

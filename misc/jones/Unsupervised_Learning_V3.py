@@ -19,6 +19,7 @@ from sklearn.neighbors import LocalOutlierFactor
 from sklearn.cluster import DBSCAN
 
 #model eval packages
+from sklearn.base import BaseEstimator
 from sklearn.model_selection import KFold
 from sklearn.metrics import precision_score, recall_score, accuracy_score
 from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score, silhouette_score
@@ -28,7 +29,7 @@ from sklearn.metrics import roc_curve
 import Prep_data_UL_V2
 
 
-def load_downsample(num_sample=5000): 
+def load_downsample(num_sample: int = 5000) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]: 
     """
     This function takes the number of sample points given, and down-samples the test and train dataset accordingly. 
     If the downsample amount is greater than the test dataset, then the downsample size is set to the length of the 
@@ -38,6 +39,7 @@ def load_downsample(num_sample=5000):
     Outputs: X_train, X_test, y_train, y_test 
     """
     
+    # Look for the training/test data
     dir_contents = os.listdir()
     file_list = ["UL_Xtrain.csv", "UL_Xtest.csv", "UL_ytrain.csv", "UL_ytest.csv"]
     for file in file_list:
@@ -56,7 +58,7 @@ def load_downsample(num_sample=5000):
     else: 
         X_train, X_test, y_train, y_test = Prep_data_UL_V2.main_execution(input_condition=1, test_ratio=0.2, anomaly_list=None)
     
-    #Down-sampling
+    # Down-sampling
     if num_sample > len(y_test): num_sample = len(y_test) 
     X_train = X_train.sample(num_sample) 
     X_test = X_test.sample(num_sample) 
@@ -66,7 +68,9 @@ def load_downsample(num_sample=5000):
     return X_train, X_test, y_train, y_test
 
 
-def evaluate_pca(input_df, variance_retention=0.95, view_plot=True): 
+def evaluate_pca(
+    input_df: pd.DataFrame, variance_retention: float = 0.95, 
+    view_plot: bool = True) -> tuple[np.array, np.array]: 
     """
     This function runs PCA analysis on the input dataframe of predictor variables to determine the min
     number of dimensions that should be retained by the dataset for our machine-learning tasks
@@ -111,10 +115,12 @@ def evaluate_pca(input_df, variance_retention=0.95, view_plot=True):
         plt.show()
 
     #Output desired vars 
-    return(optimal_n_components, pca_X)
+    return (optimal_n_components, pca_X)
 
 
-def apply_PCA(X_train, X_test, X, num_components): 
+def apply_PCA(
+    X_train: pd.DataFrame, X_test: pd.DataFrame, 
+    X: pd.DataFrame, num_components: int) -> tuple[np.array, np.array, np.array]: 
     """This function applies PCA to the training and test datasets for the n number of components
     INPUTS: 
     X_train, X_test, X: pandas datasets related to predictor variables
@@ -133,7 +139,10 @@ def apply_PCA(X_train, X_test, X, num_components):
     return pca_X_train, pca_X_test, pca_X
 
 
-def evaluate_ISF(X_train, X_test, y_train, y_test, n_samples=100000, n_estimate=100): 
+def evaluate_ISF(
+    X_train: pd.DataFrame, X_test: pd.DataFrame, 
+    y_train: pd.DataFrame, y_test: pd.DataFrame, 
+    n_samples: int = 100000, n_estimate: int = 100) -> tuple[float, float, float]: 
     """
     This function builds an isolation forest model, based on the specified 
     training data, anomaly data, and number of samples. 
@@ -161,33 +170,43 @@ def evaluate_ISF(X_train, X_test, y_train, y_test, n_samples=100000, n_estimate=
     ISF.fit(X_train)
 
     #Score performance               
-    pred_train = ISF.predict(X_train)
+    #pred_train = ISF.predict(X_train)
     pred_test = ISF.predict(X_test)
 
-    precision, recall, F1 = get_scores(pred_train, y_train)
+    # Calculate scores
+    #precision, recall, F1 = get_scores(pred_train, y_train)
     precision, recall, F1 = get_scores(pred_test, y_test)
     
     return precision, recall, F1 
 
 
-def evaluate_OCSVM(X_train,X_test, y_train, y_test): #too slow o^2
+def evaluate_OCSVM(
+    X_train: pd.DataFrame, 
+    X_test: pd.DataFrame, 
+    y_train: pd.DataFrame, 
+    y_test: pd.DataFrame) -> tuple[float, float, float]: #too slow o^2
+
+
     start = time.time()
     ocsvm = OneClassSVM()
     ocsvm = ocsvm.fit(X_train)
-    pred_train = ocsvm.predict(X_train)
+    #pred_train = ocsvm.predict(X_train)
     pred_test = ocsvm.predict(X_test)
 
     #get performance: 
-    precision, recall, F1 = get_scores(pred_train, y_train)
+    #precision, recall, F1 = get_scores(pred_train, y_train)
     precision, recall, F1 = get_scores(pred_test, y_test)
 
     end = time.time() 
-    duration = np.round((end-start)/60,1)
+    duration = np.round((end-start) / 60, 1)
     print("Total completion time, 1 iter: {duration}min")
+
     return precision, recall, F1 
 
 
-def evaluate_LOF(X_train, X_test, y_train, y_test):
+def evaluate_LOF(
+    X_train: pd.DataFrame, X_test: pd.DataFrame, 
+    y_train: pd.DataFrame, y_test: pd.DataFrame) -> tuple[float, float, float]:
     start = time.time()
     
     # Initialize and fit Local Outlier Factor model
@@ -195,11 +214,11 @@ def evaluate_LOF(X_train, X_test, y_train, y_test):
     lof.fit(X_train)
     
     # Predict on the training set and anomalies
-    pred_train = lof.predict(X_train)
+    #pred_train = lof.predict(X_train)
     pred_test = lof.predict(X_test)
 
     # Get performance
-    precision, recall, F1 = get_scores(pred_train, y_train)
+    #precision, recall, F1 = get_scores(pred_train, y_train)
     precision, recall, F1 = get_scores(pred_test, y_test)
     
     end = time.time()
@@ -209,12 +228,16 @@ def evaluate_LOF(X_train, X_test, y_train, y_test):
     return precision, recall, F1 
 
 
-def get_scores(input_prediction, input_data): 
+def get_scores(input_prediction: np.array, input_data: np.array) -> tuple[float, float, float]: 
+    '''Calculates precision, recall, and F1 scores''' 
+
+    # Calculate true/false positives/negatives
     TP = np.sum((input_prediction == 1) & (input_data == 1))
     TN = np.sum((input_prediction == 0) & (input_data == 0))
     FP = np.sum((input_prediction == 1) & (input_data == 0))
     FN = np.sum((input_prediction == 0) & (input_data == 1))   
 
+    # Calculate the scores
     precision = TP / (TP + FP)
     recall = TP / (TP + FN)
     F1 = 2 * precision * recall / (precision + recall)  
@@ -222,7 +245,7 @@ def get_scores(input_prediction, input_data):
     return precision, recall, F1
 
 
-def get_data_pipe(num_sample=5000): 
+def get_data_pipe(num_sample: int = 5000) -> tuple[np.array, np.array, np.array, np.array, np.array, np.array]: 
     """This function serves as the data retrieval pipeline for unsupervised learning. It retrieves the scaled, transformed 
     datasets, then identifies optimal principal components for 95% variance retention, and finally transforms the data to
     be represented by the dimensional feature space of the principal components. 
@@ -235,10 +258,12 @@ def get_data_pipe(num_sample=5000):
     to the target feature dataframe.
     """
     
+    # Load the data
     X_train, X_test, y_train, y_test = load_downsample(num_sample)
     X_train, X_test = X_train.reset_index(drop=True), X_test.reset_index(drop=True)
     y_train, y_test = y_train.reset_index(drop=True), y_test.reset_index(drop=True)
     
+    # Concatenate X_train and X_test data
     X = pd.concat([X_train, X_test], axis=0).reset_index(drop=True)
     y = pd.concat([y_train, y_test], axis=0).reset_index(drop=True)
 
@@ -251,7 +276,10 @@ def get_data_pipe(num_sample=5000):
     return(pca_X_train, pca_X_test, y_train, y_test, pca_X, y)
 
 
-def evaluate_model_cluster(input_model, input_X_train, input_y_train, all_scores=True):
+def evaluate_model_cluster(
+    input_model: BaseEstimator, 
+    input_X_train: np.array, input_y_train: np.array, 
+    all_scores: bool = True) -> tuple[float, float, float]:
     
     """This function trains an input model, and then scores its performance for detecting anomalies
     INPUTS: 
@@ -279,7 +307,9 @@ def evaluate_model_cluster(input_model, input_X_train, input_y_train, all_scores
     return ch_score, db_score, sil_score
 
 
-def review_models_pipe(input_X, input_y, all_scores=True): 
+def review_models_pipe(
+    input_X: pd.DataFrame, input_y: pd.DataFrame, 
+    all_scores: bool = True) -> pd.DataFrame: 
     """
     Function to assess via K-fold each of the diff. model types: 
     """

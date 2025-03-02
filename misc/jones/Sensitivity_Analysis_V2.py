@@ -42,7 +42,9 @@ import Unsupervised_Learning_Hyper_param
 #Import pyscripts 
 
 
-def get_data_pipe2(dropword = None, num_sample=5000): 
+def get_data_pipe2(
+    dropword: str = None, num_sample: int = 5000
+    ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]: 
     """This function serves as the data retrieval pipeline for unsupervised learning. It retrieves the scaled, transformed 
     datasets, then identifies optimal principal components for 95% variance retention, and finally transforms the data to
     be represented by the dimensional feature space of the principal components. 
@@ -54,6 +56,7 @@ def get_data_pipe2(dropword = None, num_sample=5000):
     PCA_X_train, PCA_X_test, y_train, y_test, PCA_X, y. Each are pandas dataframes. X's referring to predictor features, y's 
     to the target feature dataframe.
     """
+
     X_train, X_test, y_train, y_test = Unsupervised_Learning_V3.load_downsample(num_sample)
     X_train, X_test = X_train.reset_index(drop=True), X_test.reset_index(drop=True)
     y_train, y_test = y_train.reset_index(drop=True), y_test.reset_index(drop=True)
@@ -61,25 +64,32 @@ def get_data_pipe2(dropword = None, num_sample=5000):
     X = pd.concat([X_train, X_test], axis=0).reset_index(drop=True)
     y = pd.concat([y_train, y_test], axis=0).reset_index(drop=True)
 
-    #Remove unawanted features from each (X_train, X_test, X) 
+    # Remove unawanted features from each (X_train, X_test, X) 
     all_features = list(X_train.columns)
-    temp_words = [string for string in all_features if dropword not in string]
+    temp_words = [feature for feature in all_features if dropword not in feature]
 
-    #Remove unwanted features 
+    # Remove unwanted features 
     X_train = X_train[temp_words]
     X_test = X_test[temp_words] 
     X = X[temp_words] 
     
-    #Find the optimal number of components for dimension reduction
+    # Find the optimal number of components for dimension reduction
     optimal_n_components, pca_X = Unsupervised_Learning_V3.evaluate_pca(X_train, variance_retention=0.95, view_plot=True)
 
-    #Apply PCA to the 
+    # Apply PCA to the 
     pca_X_train, pca_X_test, pca_X = Unsupervised_Learning_V3.apply_PCA(X_train, X_test, X, optimal_n_components)
     
     return(pca_X_train, pca_X_test, y_train, y_test, pca_X, y)
 
 
-def hyper_parameter_pipe2(dropword = None, num_sample=1000):
+def hyper_parameter_pipe2(
+    dropword = None, num_sample: int = 1000
+    ) -> list[
+        float, float, float, float, float, float, 
+        pd.DataFrame, pd.DataFrame, 
+        
+    ]:
+    '''Perform hyper parameter searching on multiple models'''
     
     #Get training data for hyper-param analysis
     pca_X_train, pca_X_test, y_train, y_test, pca_X, y = get_data_pipe2(dropword = dropword, num_sample=num_sample)
@@ -149,8 +159,12 @@ def hyper_parameter_pipe2(dropword = None, num_sample=1000):
                                                      contam_ratio = val_contam, 
                                                      )
     
-    outputs = [IsoF_precision, IsoFrecall, IsoF1, lof_precision, lof_recall, lof_F1, df_lof, df_isoF, LoF_plot, IsoF_plot,
-               pca_X_train, pca_X_test, y_train, y_test, pca_X, y]
+    outputs = [
+        IsoF_precision, IsoFrecall, IsoF1, 
+        lof_precision, lof_recall, lof_F1, 
+        df_lof, df_isoF, 
+        LoF_plot, IsoF_plot, 
+        pca_X_train, pca_X_test, y_train, y_test, pca_X, y]
     
     end = time.time() 
     print("hyper-parameters finished in ", (end-start)/60, "min") 
@@ -179,6 +193,7 @@ if __name__ == "__main__":
     #Iteratively exclude features from model to see impact on score
     for dropword in potential_strings: 
         t1 = time.time()
+
         #Get results 
         results = hyper_parameter_pipe2(dropword, num_sample=sample_size)
         IsoF_precision, IsoFrecall, IsoF1, lof_precision, lof_recall, lof_F1, df_lof, df_isoF, LoF_plot, IsoF_plot,pca_X_train, pca_X_test, y_train, y_test, pca_X, y = results

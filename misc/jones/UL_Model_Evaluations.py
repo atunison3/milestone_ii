@@ -9,6 +9,7 @@ from sklearn.decomposition import PCA
 from sklearn.ensemble import IsolationForest
 from sklearn.svm import OneClassSVM #very slow
 from sklearn.neighbors import LocalOutlierFactor
+from sklearn.base import BaseEstimator
 
 #model eval packages
 from sklearn.model_selection import KFold
@@ -17,7 +18,9 @@ from sklearn.model_selection import KFold
 import Prep_data_UL
 
 
-def evaluate_pca(input_df, variance_retention=0.95, view_plot=True): 
+def evaluate_pca(
+    input_df: pd.DataFrame, variance_retention: float = 0.95, 
+    view_plot: bool = True) -> tuple[int, np.array]: 
     """
     This function runs PCA analysis on the input dataframe of predictor variables to determine the min
     number of dimensions that should be retained by the dataset for our machine-learning tasks
@@ -32,34 +35,34 @@ def evaluate_pca(input_df, variance_retention=0.95, view_plot=True):
     pca_X: the input_df transformed via PCA into the optimal dimension size 
     """
 
-    #setup PCA 
+    # Setup PCA 
     pca = PCA() 
     pca.fit(input_df) 
 
-    #find the cumulative explained variance: 
+    # Find the cumulative explained variance: 
     explained_variance = pca.explained_variance_ratio_
     cumulative_variance = explained_variance.cumsum()
 
-    #get the optimal number of principle components: 
+    # Get the optimal number of principle components: 
     optimal_n_components = (cumulative_variance >= 0.95).argmax() + 1
 
-    #transform the data via PCA
+    # Transform the data via PCA
     pca = PCA(n_components=optimal_n_components)
     pca_X = pca.fit_transform(input_df)
 
-    #plot the variance vs. PCA num. 
-    if view_plot == True: 
+    # Plot the variance vs. PCA num. 
+    if view_plot: 
         plt.plot(range(1, len(cumulative_variance) + 1), cumulative_variance, marker='o')
         plt.xlabel('Number of Components')
         plt.ylabel('Cumulative Explained Variance')
         plt.title('Explained Variance vs. Number of PCA Components')
         plt.show()
 
-    #Output desired vars 
-    return(optimal_n_components, pca_X)
+    # Output desired vars 
+    return (optimal_n_components, pca_X)
 
 
-def apply_PCA(X, num_components): 
+def apply_PCA(X: pd.DataFrame, num_components: int) -> np.array: 
     """This function applies PCA to the training and test datasets for the n number of components
     INPUTS: 
     X: the pandas dataset of predictor variables
@@ -69,13 +72,16 @@ def apply_PCA(X, num_components):
     PCA_X: the X dataset transformed by PCA
     """
 
-    #setup PCA     
+    # Setup PCA     
     pca = PCA(n_components=num_components)
     pca_X = pca.fit_transform(X)
+
     return pca_X
 
 
-def score_model(pred_normal, pred_anomaly, X_train, X_anomalies): 
+def score_model(
+    pred_normal: np.array, pred_anomaly: np.array, 
+    X_train: pd.DataFrame, X_anomalies: pd.DataFrame) -> tuple[float, float, float]: 
     """This function scores the classification model
     INPUTS: 
     input_normal: the normal set of datapoints for training
@@ -85,23 +91,23 @@ def score_model(pred_normal, pred_anomaly, X_train, X_anomalies):
     OUTPUTS: precision, recall, accuracy, F1_score
     """
 
-    #Identify True and False Identifications for Scoring 
+    # Identify True and False Identifications for Scoring 
     TP = list(pred_normal).count(1)
     FP = len(X_train) - TP 
     TN = list(pred_anomaly).count(1)
     FN = len(X_anomalies) - TN
     
-    #Get precision, recall, accuracy, and F1
+    # Get precision, recall, accuracy, and F1
     precision = TP / (TP + FP)
     recall = TP / (TP + FN)
     F1 = 2 * precision * recall / (precision + recall)
 
-    return (precision, recall, F1)
+    return precision, recall, F1
 
-
-def evaluate_ISF(X_train, X_anomalies, n_samples=100000, n_estimate=100): 
-    """
-    This function builds an isolation forest model, based on the specified 
+def evaluate_ISF(
+    X_train: pd.DataFrame, X_anomalies: pd.DataFrame, 
+    n_samples: int = 100000, n_estimate: int = 100) -> tuple[float, float, float]: 
+    """This function builds an isolation forest model, based on the specified 
     training data, anomaly data, and number of samples. 
 
     INPUTS: 
@@ -115,11 +121,12 @@ def evaluate_ISF(X_train, X_anomalies, n_samples=100000, n_estimate=100):
     recall: the recall of the isolation forest model 
     accuracy: the accuracy of the isolation forest model 
     """
-    #Find contam qty: 
+
+    # Find contam qty: 
     contam = len(X_anomalies) / (len(X_train) + len(X_anomalies))
     
-    #Setup the model: 
-    ISF = IsolationForest(n_estimators=n_estimate,
+    # Setup the model: 
+    isf = IsolationForest(n_estimators=n_estimate,
                           max_samples=n_samples,
                           contamination= contam,
                           n_jobs=-1,
@@ -127,35 +134,49 @@ def evaluate_ISF(X_train, X_anomalies, n_samples=100000, n_estimate=100):
                           )
 
     #Fit to the non-anomalous data
-    ISF.fit(X_train)
+    isf.fit(X_train)
 
-    #Score performance               
-    pred_normal = ISF.predict(X_train)
-    pred_anomaly = ISF.predict(X_anomalies)
-
+    #Score performance     
+    pred_normal = isf.predict(X_train)          
+    pred_anomaly = isf.predict(X_anomalies)
     precision, recall, F1 = score_model(pred_normal, pred_anomaly, X_train, X_anomalies)
 
-    
     return precision, recall, F1 
 
 
-def evaluate_OCSVM(X_train,X_test): #too slow o^2
+def evaluate_OCSVM(
+    X_train: pd.DataFrame, 
+    X_test: pd.DataFrame) -> tuple[float, float, float]: #too slow o^2
+    '''Evaluate One class SVM'''
+
+    # Start a timer
     start = time.time()
+
+    # Create and fit model
     ocsvm = OneClassSVM()
     ocsvm = ocsvm.fit(pca_X_train)
+
+    # Predict
     pred_normal = ocsvm.predict(pca_X_train)
     pred_anomaly = ocsvm.predict(pca_X_anomalies)
 
-    #get performance: 
+    # Get performance: 
     precision, recall, F1 = score_model(pred_normal, pred_anomaly, X_train, X_anomalies)
 
+    # End the timer
     end = time.time() 
     duration = np.round((end-start)/60,1)
-    print("Total completion time, 1 iter: {duration}min")
+    print(f"Total completion time, 1 iter: {duration}min")
+
     return precision, recall, F1 
 
 
-def evaluate_LOF(X_train, X_anomalies):
+def evaluate_LOF(
+    X_train: pd.DataFrame, 
+    X_anomalies: pd.DataFrame) -> tuple[float, float, float]:
+    '''Evaluate Local Outlier Factor'''
+
+    # Start a timer
     start = time.time()
     
     # Initialize and fit Local Outlier Factor model
@@ -169,6 +190,7 @@ def evaluate_LOF(X_train, X_anomalies):
     # Get performance
     precision, recall, F1 = score_model(pred_normal, pred_anomaly, X_train, X_anomalies)
 
+    # End the timer
     end = time.time()
     duration = np.round((end - start) / 60, 1)
     print(f"Total completion time, 1 iter: {duration} min")
@@ -176,7 +198,10 @@ def evaluate_LOF(X_train, X_anomalies):
     return precision, recall, F1 
 
 
-def evaluate_model(input_model, input_X_train, input_X_anomalies):
+def evaluate_model(
+    input_model: BaseEstimator, 
+    input_X_train: pd.DataFrame, 
+    input_X_anomalies: pd.DataFrame) ->tuple[float, float, float]:
     
     """This function trains an input model, and then scores its performance for detecting anomalies
     INPUTS: 
@@ -188,20 +213,20 @@ def evaluate_model(input_model, input_X_train, input_X_anomalies):
     precision, recall, accuracy, F1_score: float values representing the model performance
     """
 
-    #Fit the model
+    # Fit the model
     input_model.fit(input_X_train)
     
-    #Score performance               
+    # Score performance               
     normal_model = input_model.predict(input_X_train)
     anomaly_model = input_model.predict(input_X_anomalies)
 
-    #Identify True and False Identifications for Scoring 
+    # Identify True and False Identifications for Scoring 
     TP = list(normal_model).count(1)
     FP = len(input_X_train) - TP 
     TN = list(anomaly_model).count(1)
     FN = len(input_X_anomalies) - TN
     
-    #Get precision, recall, accuracy, and F1
+    # Get precision, recall, accuracy, and F1
     precision = TP / (TP + FP)
     recall = TP / (TP + FN)
     F1 = 2 * precision * recall / (precision + recall)
@@ -209,7 +234,9 @@ def evaluate_model(input_model, input_X_train, input_X_anomalies):
     return precision, recall, F1 
 
 
-def review_models(input_X_train, input_X_anomalies): 
+def review_models(
+    input_X_train: pd.DataFrame, 
+    input_X_anomalies: pd.DataFrame) -> pd.DataFrame: 
     """
     Function to assess via K-fold each of the diff. model types: 
     """
@@ -237,18 +264,19 @@ def review_models(input_X_train, input_X_anomalies):
         temp_recall_list = [] 
         temp_F1_list = [] 
         for i, (train_index, test_index) in enumerate(kf.split(input_X_train)):
-        #for train_index, test_index in cv.split(X_train):
-            X_train_cv, X_test_cv = input_X_train.iloc[list(train_index)], input_X_train.iloc[list(train_index)]
+            X_train_cv, _ = input_X_train.iloc[list(train_index)], input_X_train.iloc[list(train_index)]
             precision, recall, F1 = evaluate_model(model, X_train_cv, input_X_anomalies)
             temp_precision_list.append(precision)
             temp_recall_list.append(recall)
             temp_F1_list.append(F1)
     
+        # Append socres and model lists
         precision_list.append(np.mean(temp_precision_list))
         recall_list.append(np.mean(temp_recall_list))
         F1_list.append(np.mean(temp_F1_list))
         model_list.append(name)
     
+        # Stop this round's timer
         stop = time.time()
         duration = np.round((stop - start) / 60,1) 
         print(f'Finished K-fold training and evaluation for {name} in {duration}min')     
@@ -263,16 +291,18 @@ def review_models(input_X_train, input_X_anomalies):
 
 #Execution: 
 if __name__ == "__main__": 
+
+    # Great the data
     X_train, X_test, X_anomalies, y_train, y_test = Prep_data_UL.get_UL_data()
     X_train = X_train.reset_index(drop=True)
 
-    #Only down-sampling to enable efficient model review while waiting for HPC access...
+    # Only down-sampling to enable efficient model review while waiting for HPC access...
     X_train_sample = X_train.sample(5000) 
     X_anomaly_sample = X_anomalies.sample(5000) 
 
-    #Apply PCA to datasets 
+    # Apply PCA to datasets 
     pca_X_train = apply_PCA(X_train_sample, 17)
     pca_X_anomalies = apply_PCA(X_anomaly_sample, 17)
 
-    #Evaluate Models: 
+    # Evaluate Models: 
     review_models(X_train_sample, X_anomaly_sample)

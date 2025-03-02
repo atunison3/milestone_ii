@@ -1,11 +1,13 @@
 # In this script we're going to look at the total distribution of charging times (in general), and how they vary based 
 # on different power levels, or SOC durations 
 
+import os
 import pandas as pd
-import EDA_part1
+
+from .EDA_part1 import prep_data, hist_plotter
 
     
-def combine_charging_data(input_condition=2):
+def combine_charging_data(input_condition: int = 2, assets_path: str = 'assets/') -> pd.DataFrame:
     """
     This function comnines data from the charging stations, charging connectors, and charging sessions
     INPUTS: 
@@ -15,25 +17,29 @@ def combine_charging_data(input_condition=2):
     df_merged: a pandas dataframe object combined from the major datafiles 
     """
     
-    #filepaths for the desired data 
-    filepath = r'data\\evwatts.public.session.csv'
-    station_file = r'data\\evwatts.public.evse.csv'
-    connector_file = r'data\\evwatts.public.connector.csv'
+    # Filepaths for the desired data 
+    filepath = os.path.join(assets_path, 'evwatts.public.session.csv')
+    station_file = os.path.join(assets_path, 'evwatts.public.evse.csv')
+    connector_file = os.path.join(assets_path, 'evwatts.public.connector.csv')
 
-    #Read and merge the dataframes of interest 
-    df = pd.read_csv(filepath) #Read file
-    df["soc_charged"] = df["end_soc"] - df["start_soc"]
-    df_redux = EDA_part1.prep_data(input_df=df, condition=input_condition)
+    # Read and merge the dataframes of interest 
+    df = pd.read_csv(filepath) 
+    df["soc_charged"] = df["end_soc"] - df["start_soc"]  # Calculates total charge
+    df_redux = prep_data(input_df=df, condition=input_condition)
     df_stations =  pd.read_csv(station_file)
     df_connectors = pd.read_csv(connector_file)
 
-    #Merge togethercharging data with connector information
+    # Merge togethercharging data with connector information
     df_merged = pd.merge(df_redux, df_stations, on='evse_id', how='left')
     df_merged = pd.merge(df_merged, df_connectors, on='evse_id', how='left')
+
     return df_merged
 
 
-def review_charging(input_df, power_rating, num_ports, specific_soc_duration=False, num_samples = 100000): 
+def review_charging(
+    input_df: pd.DataFrame, power_rating: str, 
+    num_ports: int, specific_soc_duration: bool = False, 
+    num_samples: int = 100000) -> None: 
     """
     This function shows the distribution of charging profiles based on the specified power rating and port quantity
     for a given dataframe. 
@@ -49,22 +55,21 @@ def review_charging(input_df, power_rating, num_ports, specific_soc_duration=Fal
     Displays a matplotlib histogram plot showing the PDF & CDF for the data at the given conditions  
     """
 
-    #Apply the specified filter
+    # Apply the specified filter
     plot_df = input_df[(input_df.power_kw==power_rating) & (input_df.num_ports == num_ports)]
 
-    #check if worth plotting
+    # Check if worth plotting
     if len(plot_df) <10: 
         print("Less than 10 observations found for the requested condition. No plotting will be done")
-
     else: 
-        #check num ports to get part of the title string
+        # Check num ports to get part of the title string
         if num_ports ==2: 
             port_string = "dual"
         else: 
             port_string = "single"
 
-        #Set title based on plot type
-        if specific_soc_duration == False: 
+        # Set title based on plot type
+        if not specific_soc_duration: 
             title_text = f"Total charge time for {power_rating} Power and {port_string} port connection"
         else: 
             min_soc = int(round(input_df.start_soc.mean(),-1))
@@ -73,11 +78,11 @@ def review_charging(input_df, power_rating, num_ports, specific_soc_duration=Fal
 
         #Plot results
         xlabel_text = "Charge Duration (minutes)"
-        plot = EDA_part1.hist_plotter(plot_df["charge_duration"]*60, sample_size = num_samples, normalize=True,
+        hist_plotter(plot_df["charge_duration"]*60, sample_size = num_samples, normalize=True,
                                       xlabel=xlabel_text, title=title_text)
 
 
-def generate_desired_plots(input_df): 
+def generate_desired_plots(input_df: pd.DataFrame) -> None: 
     """
     This function generates desired plots for to examine the total charging time spent under different conditions
     INPUTS: 
@@ -87,26 +92,28 @@ def generate_desired_plots(input_df):
     numerous matplotlib plots 
     """
     
-    #First develop the Plots for General Charge Time vs. Power
+    # First develop the Plots for General Charge Time vs. Power
     power_list = [">100 kW", ">100 kW", "30 kW - 100 kW", "<30 kW"]
     port_list = [2,1,1,1]
 
-    #Create total charge time plots by power rating and number of chargers 
+    # Create total charge time plots by power rating and number of chargers 
     for i in range(len(power_list)): 
         review_charging(input_df, power_list[i], port_list[i], specific_soc_duration=False, num_samples = 100000)
 
-    #Prep data for 20-80 charge time: 
-    df_20_80 = input_df[(
-                         (input_df["start_soc"] < 20.2) & 
-                         (input_df["start_soc"] > 19.8) & 
-                         (input_df["end_soc"] > 79.8) & 
-                         (input_df["end_soc"] < 80.2)
-                         )]
+    # Prep data for 20-80 charge time: 
+    # df_20_80 = input_df[(
+    #                      (input_df["start_soc"] < 20.2) & 
+    #                      (input_df["start_soc"] > 19.8) & 
+    #                      (input_df["end_soc"] > 79.8) & 
+    #                      (input_df["end_soc"] < 80.2)
+    #                      )]
 
-    #Now plot for 20-80 Charge Time:
+    # Now plot for 20-80 Charge Time:
     for i in range(len(power_list)): 
-        if i>0: 
-            review_charging(input_df, power_list[i], port_list[i], specific_soc_duration=True, num_samples = 100000)
+        if i > 0: 
+            review_charging(
+                input_df, power_list[i], port_list[i], 
+                specific_soc_duration=True, num_samples = 100000)
 
 
 #Execution: 
