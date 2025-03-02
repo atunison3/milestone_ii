@@ -26,13 +26,13 @@ if __name__=='__main__':
     warnings.filterwarnings("ignore")
 
     # Import more packages
-    from sklearn.ensemble import RandomForestClassifier
-    from sklearn.linear_model import LogisticRegression, LinearRegression
-    from sklearn.linear_model import Lasso, Ridge, ElasticNet
-    from sklearn.metrics import f1_score, accuracy_score, recall_score, precision_score
-    from sklearn.metrics import mean_squared_error
-    from sklearn.model_selection import KFold, cross_val_score
-    from sklearn.neighbors import KNeighborsClassifier
+    # from sklearn.ensemble import RandomForestClassifier
+    # from sklearn.linear_model import LogisticRegression, LinearRegression
+    # from sklearn.linear_model import Lasso, Ridge, ElasticNet
+    # from sklearn.metrics import f1_score, accuracy_score, recall_score, precision_score
+    # from sklearn.metrics import mean_squared_error
+    # from sklearn.model_selection import KFold, cross_val_score
+    # from sklearn.neighbors import KNeighborsClassifier
     
     # Import packages from this project
     from team17.super.functions import DataCleaningFunctions, LoadData
@@ -40,6 +40,7 @@ if __name__=='__main__':
     from team17.super.functions import DataIndex
     from team17.super.pipeline import full_pipeline, build_pipeline, cat_features, num_features
     from team17.super.evaluations import evaluate_model
+
 
     # Set random seed
     np.random.seed(42)

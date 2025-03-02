@@ -3,7 +3,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.preprocessing import StandardScaler, FunctionTransformer, MultiLabelBinarizer
 
-from team17.super.parameters import cat_features, num_features
+from .parameters import cat_features, num_features
 
 class DataFrameSelector(BaseEstimator, TransformerMixin):
     def __init__(self, attribute_names: list):
