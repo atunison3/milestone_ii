@@ -124,7 +124,8 @@ def anomaly_tags(
 
 
 def main_execution(
-    path_to_results: str, input_condition: int = 1, test_ratio: float = 0.2,
+    path_to_results: str, path_to_assets: str, 
+    input_condition: int = 1, test_ratio: float = 0.2,
     anomaly_list: list[int] = None) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]: 
     """
     This function runs the main execution to process the data into train, val, and test datasets
@@ -139,7 +140,7 @@ def main_execution(
     Y_train, y_val, & y_test:    
     """
     # Get the dataframe processed
-    merged_df = combine_charging_data(input_condition)
+    merged_df = combine_charging_data(input_condition, assets_path=path_to_assets)
     merged_time_df = process_datetime(merged_df)
     mapped_df = anomaly_tags(merged_time_df, anomaly_list=anomaly_list)
     mapped_df = mapped_df.dropna()

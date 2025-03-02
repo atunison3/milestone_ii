@@ -36,7 +36,8 @@ if __name__ == '__main__':
     # Perform Prep data
     print("\033[32mPerforming Prep Data\033[0m")
     X_train, X_test, y_train, y_test = main_execution(
-        input_condition=args.input_condition2, path_to_results=args.path_to_results)
+        input_condition=args.input_condition2, 
+        path_to_results=args.path_to_results, path_to_assets=args.path_to_assets)
 
     # Perform Unsupervised Learning
     print("\033[32mPerforming Unsupervised Learning\033[0m")
