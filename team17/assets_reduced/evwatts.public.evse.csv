@@ -1,0 +1,102 @@
+,evse_id,metro_area,land_use,region,num_ports,charge_level,venue,pricing
+0,6034,Undesignated,Metro Area,Mountain,1,DCFC,Corridor,Paid
+1,6065,Undesignated,Metro Area,Mountain,1,DCFC,Corridor,Paid
+2,6100,"Phoenix-Mesa-Chandler, AZ Metro Area",Metro Area,Mountain,1,DCFC,Undesignated,Free
+3,6155,Undesignated,Metro Area,Mountain,1,DCFC,Corridor,Paid
+4,1315,"Denver-Aurora-Lakewood, CO Metro Area",Metro Area,Mountain,1,DCFC,Corridor,Free
+5,1573,"Denver-Aurora-Lakewood, CO Metro Area",Metro Area,Mountain,1,DCFC,Corridor,Paid
+6,1686,"Denver-Aurora-Lakewood, CO Metro Area",Metro Area,Mountain,1,DCFC,Corridor,Free
+7,1717,Undesignated,Metro Area,Mountain,1,DCFC,Corridor,Paid
+8,1728,"Phoenix-Mesa-Chandler, AZ Metro Area",Metro Area,Mountain,1,DCFC,Undesignated,Free
+9,1789,"Phoenix-Mesa-Chandler, AZ Metro Area",Metro Area,Mountain,1,DCFC,Undesignated,Free
+10,1953,Undesignated,Metro Area,Mountain,1,DCFC,Undesignated,Free
+11,591,"Boulder, CO Metro Area",Metro Area,Mountain,1,DCFC,Corridor,Undesignated
+12,840,"Phoenix-Mesa-Chandler, AZ Metro Area",Metro Area,Mountain,1,DCFC,Undesignated,Paid
+13,1263,Undesignated,Metro Area,Mountain,1,DCFC,Corridor,Free
+14,5288,Undesignated,Metro Area,Mountain,1,DCFC,Corridor,Paid
+15,5298,Undesignated,Metro Area,Mountain,1,DCFC,Corridor,Paid
+16,5314,Undesignated,Metro Area,Mountain,1,DCFC,Corridor,Paid
+17,5304,"Denver-Aurora-Lakewood, CO Metro Area",Metro Area,Mountain,1,DCFC,Corridor,Free
+18,5306,Undesignated,Metro Area,Mountain,1,DCFC,Corridor,Paid
+19,5327,"Denver-Aurora-Lakewood, CO Metro Area",Metro Area,Mountain,1,DCFC,Corridor,Free
+20,5368,Undesignated,Metro Area,Mountain,1,DCFC,Corridor,Paid
+21,13993,Undesignated,Metro Area,Mountain,1,DCFC,Corridor,Free
+22,14005,Undesignated,Metro Area,Mountain,1,DCFC,Corridor,Free
+23,26685,Undesignated,Metro Area,Mountain,1,DCFC,Corridor,Paid
+24,26525,"Denver-Aurora-Lakewood, CO Metro Area",Metro Area,Mountain,1,DCFC,Corridor,Free
+25,26531,Undesignated,Metro Area,Mountain,1,DCFC,Corridor,Paid
+26,22522,Undesignated,Metro Area,Mountain,1,DCFC,Undesignated,Free
+27,22525,Undesignated,Metro Area,Mountain,1,DCFC,Undesignated,Free
+28,26936,"Phoenix-Mesa-Chandler, AZ Metro Area",Metro Area,Mountain,1,DCFC,Undesignated,Free
+29,26938,"Phoenix-Mesa-Chandler, AZ Metro Area",Metro Area,Mountain,1,DCFC,Undesignated,Free
+30,23066,Undesignated,Metro Area,Mountain,1,DCFC,Corridor,Undesignated
+31,22950,"Boulder, CO Metro Area",Metro Area,Mountain,1,DCFC,Undesignated,Undesignated
+32,29969,"Denver-Aurora-Lakewood, CO Metro Area",Metro Area,Mountain,1,DCFC,Undesignated,Free
+33,29902,Undesignated,Metro Area,Mountain,1,DCFC,Corridor,Paid
+34,30241,"Denver-Aurora-Lakewood, CO Metro Area",Metro Area,Mountain,1,DCFC,Undesignated,Free
+35,30242,"Denver-Aurora-Lakewood, CO Metro Area",Metro Area,Mountain,1,DCFC,Undesignated,Free
+36,33709,"Denver-Aurora-Lakewood, CO Metro Area",Metro Area,Mountain,1,DCFC,Undesignated,Free
+37,37299,"Denver-Aurora-Lakewood, CO Metro Area",Metro Area,Mountain,1,DCFC,Undesignated,Free
+38,41420,Undesignated,Metro Area,Mountain,1,DCFC,Undesignated,Free
+39,41221,"Phoenix-Mesa-Chandler, AZ Metro Area",Metro Area,Mountain,1,DCFC,Undesignated,Free
+40,41158,"Denver-Aurora-Lakewood, CO Metro Area",Metro Area,Mountain,1,DCFC,Undesignated,Free
+41,40916,"Phoenix-Mesa-Chandler, AZ Metro Area",Metro Area,Mountain,1,DCFC,Undesignated,Free
+42,40919,"Phoenix-Mesa-Chandler, AZ Metro Area",Metro Area,Mountain,1,DCFC,Undesignated,Free
+43,41663,"Denver-Aurora-Lakewood, CO Metro Area",Metro Area,Mountain,1,DCFC,Undesignated,Undesignated
+44,6162,Undesignated,Metro Area,New England,1,DCFC,Undesignated,Free
+45,6153,Undesignated,Metro Area,New England,1,DCFC,Undesignated,Free
+46,5283,"Burlington-South Burlington, VT Metro Area",Metro Area,New England,1,DCFC,Undesignated,Free
+47,832,"Boston-Cambridge-Newton, MA-NH Metro Area",Metro Area,New England,1,DCFC,Undesignated,Paid
+48,819,"Boston-Cambridge-Newton, MA-NH Metro Area",Metro Area,New England,1,DCFC,Corridor,Free
+49,877,"Boston-Cambridge-Newton, MA-NH Metro Area",Metro Area,New England,1,DCFC,Corridor,Paid
+50,936,Undesignated,Metro Area,New England,1,DCFC,Undesignated,Free
+51,924,"Burlington-South Burlington, VT Metro Area",Metro Area,New England,1,DCFC,Undesignated,Paid
+52,952,"Burlington-South Burlington, VT Metro Area",Metro Area,New England,1,DCFC,Undesignated,Free
+53,14040,"Providence-Warwick, RI-MA Metro Area",Metro Area,New England,1,DCFC,Corridor,Paid
+54,13991,Undesignated,Metro Area,New England,1,DCFC,Undesignated,Free
+55,14060,"Providence-Warwick, RI-MA Metro Area",Metro Area,New England,1,DCFC,Corridor,Paid
+56,14095,Undesignated,Metro Area,New England,1,DCFC,Corridor,Paid
+57,14097,Undesignated,Metro Area,New England,1,DCFC,Undesignated,Free
+58,13540,"Boston-Cambridge-Newton, MA-NH Metro Area",Metro Area,New England,1,DCFC,Corridor,Undesignated
+59,26517,"Providence-Warwick, RI-MA Metro Area",Metro Area,New England,1,DCFC,Undesignated,Paid
+60,22302,"Providence-Warwick, RI-MA Metro Area",Metro Area,New England,1,DCFC,Undesignated,Paid
+61,26858,"Worcester, MA-CT Metro Area",Metro Area,New England,1,DCFC,Corridor,Paid
+62,26887,"Burlington-South Burlington, VT Metro Area",Metro Area,New England,1,DCFC,Undesignated,Paid
+63,26888,"Burlington-South Burlington, VT Metro Area",Metro Area,New England,1,DCFC,Undesignated,Paid
+64,22520,"Providence-Warwick, RI-MA Metro Area",Metro Area,New England,1,DCFC,Corridor,Paid
+65,22521,"Providence-Warwick, RI-MA Metro Area",Metro Area,New England,1,DCFC,Corridor,Paid
+66,22509,Undesignated,Metro Area,New England,1,DCFC,Corridor,Paid
+67,26557,"Boston-Cambridge-Newton, MA-NH Metro Area",Metro Area,New England,1,DCFC,Corridor,Paid
+68,26558,"Boston-Cambridge-Newton, MA-NH Metro Area",Metro Area,New England,1,DCFC,Corridor,Paid
+69,26559,"Boston-Cambridge-Newton, MA-NH Metro Area",Metro Area,New England,1,DCFC,Corridor,Paid
+70,26560,"Boston-Cambridge-Newton, MA-NH Metro Area",Metro Area,New England,1,DCFC,Corridor,Paid
+71,22421,Undesignated,Metro Area,New England,1,DCFC,Undesignated,Free
+72,26718,"Providence-Warwick, RI-MA Metro Area",Metro Area,New England,1,DCFC,Corridor,Paid
+73,26612,"Providence-Warwick, RI-MA Metro Area",Metro Area,New England,1,DCFC,Corridor,Free
+74,26613,"Providence-Warwick, RI-MA Metro Area",Metro Area,New England,1,DCFC,Corridor,Free
+75,26614,"Providence-Warwick, RI-MA Metro Area",Metro Area,New England,1,DCFC,Corridor,Free
+76,26615,"Providence-Warwick, RI-MA Metro Area",Metro Area,New England,1,DCFC,Corridor,Free
+77,26616,"Providence-Warwick, RI-MA Metro Area",Metro Area,New England,1,DCFC,Corridor,Free
+78,26617,"Providence-Warwick, RI-MA Metro Area",Metro Area,New England,1,DCFC,Corridor,Free
+79,30157,"Providence-Warwick, RI-MA Metro Area",Metro Area,New England,1,DCFC,Corridor,Free
+80,30158,"Providence-Warwick, RI-MA Metro Area",Metro Area,New England,1,DCFC,Corridor,Free
+81,30051,"Providence-Warwick, RI-MA Metro Area",Metro Area,New England,1,DCFC,Undesignated,Free
+82,41010,"Boston-Cambridge-Newton, MA-NH Metro Area",Metro Area,New England,1,DCFC,Undesignated,Paid
+83,41204,"Boston-Cambridge-Newton, MA-NH Metro Area",Metro Area,New England,1,DCFC,Undesignated,Paid
+84,1758,"Seattle-Tacoma-Bellevue, WA Metro Area",Metro Area,Pacific,1,DCFC,Undesignated,Paid
+85,1854,Undesignated,Metro Area,Pacific,1,DCFC,Undesignated,Free
+86,1855,"Portland-Vancouver-Hillsboro, OR-WA Metro Area",Metro Area,Pacific,1,DCFC,Undesignated,Free
+87,1861,"Portland-Vancouver-Hillsboro, OR-WA Metro Area",Metro Area,Pacific,1,DCFC,Undesignated,Free
+88,1868,"Portland-Vancouver-Hillsboro, OR-WA Metro Area",Metro Area,Pacific,1,DCFC,Undesignated,Free
+89,1900,Undesignated,Metro Area,Pacific,1,DCFC,Undesignated,Free
+90,1748,"Seattle-Tacoma-Bellevue, WA Metro Area",Metro Area,Pacific,1,DCFC,Undesignated,Paid
+91,1648,"Seattle-Tacoma-Bellevue, WA Metro Area",Metro Area,Pacific,1,DCFC,Undesignated,Paid
+92,1762,"Portland-Vancouver-Hillsboro, OR-WA Metro Area",Metro Area,Pacific,1,DCFC,Corridor,Paid
+93,1398,"Seattle-Tacoma-Bellevue, WA Metro Area",Metro Area,Pacific,1,DCFC,Undesignated,Paid
+94,1524,"Seattle-Tacoma-Bellevue, WA Metro Area",Metro Area,Pacific,1,DCFC,Undesignated,Undesignated
+95,1239,Undesignated,Metro Area,Pacific,1,DCFC,Undesignated,Paid
+96,14093,"Seattle-Tacoma-Bellevue, WA Metro Area",Metro Area,Pacific,1,DCFC,Undesignated,Free
+97,14086,"Seattle-Tacoma-Bellevue, WA Metro Area",Metro Area,Pacific,1,DCFC,Undesignated,Paid
+98,14046,"Seattle-Tacoma-Bellevue, WA Metro Area",Metro Area,Pacific,1,DCFC,Undesignated,Free
+99,14019,"Seattle-Tacoma-Bellevue, WA Metro Area",Metro Area,Pacific,1,DCFC,Undesignated,Free
+100,14025,"Seattle-Tacoma-Bellevue, WA Metro Area",Metro Area,Pacific,1,DCFC,Undesignated,Paid

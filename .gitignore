@@ -1,6 +1,6 @@
 # large data files
 /data
-*.csv
+assets/
 assets/
 
 # python environmnts
